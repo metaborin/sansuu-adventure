@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { StageMeta } from '../types'
 import { generateQuestions } from '../questions'
 import { VisualView } from './Visual'
-import { playCorrect, playTap, playWrong, speak, stopSpeak } from '../utils/audio'
+import { playCorrect, playTap, playWrong, speak, speakAuto, stopSpeak } from '../utils/audio'
 
 // ==========================================================================
 // 問題画面（1ステージ ＝ 5問）
@@ -39,9 +39,9 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
   const q = questions[index]
   const isLast = index === questions.length - 1
 
-  // あたらしい 問題に なったら、問題文を 読み上げる（おとが オンのとき・ベストエフォート）
+  // あたらしい 問題に なったら、じどう 読み上げ（せっていが オンのときだけ・ベストエフォート）
   useEffect(() => {
-    speak(q.prompt)
+    speakAuto(q.prompt)
     return () => stopSpeak()
   }, [q.id, q.prompt])
 
@@ -113,16 +113,15 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
       <div className="card question-card">
         <div className="prompt-row">
           <p className="prompt">{q.prompt}</p>
-          {soundOn && (
-            <button
-              className="speak-btn"
-              onClick={() => speak(q.prompt)}
-              aria-label="もんだいを よみあげる"
-              title="もんだいを よみあげる"
-            >
-              🔊
-            </button>
-          )}
+          {/* いつでも 読み上げできる ボタン（よみあげ設定が オフでも 鳴る） */}
+          <button
+            className="speak-btn"
+            onClick={() => speak(q.prompt)}
+            aria-label="もんだいを よみあげる"
+            title="もんだいを よみあげる"
+          >
+            🔊
+          </button>
         </div>
 
         <div className="visual-area">

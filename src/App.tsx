@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Progress } from './types'
 import { getStage, STAGES } from './data/stages'
 import { Home } from './components/Home'
@@ -12,7 +12,13 @@ import {
   saveProgress,
   starsForCorrect,
 } from './utils/storage'
-import { loadSoundEnabled, setSoundEnabled } from './utils/audio'
+import {
+  loadSfxEnabled,
+  loadSpeechEnabled,
+  setSfxEnabled,
+  setSpeechEnabled,
+  startBgm,
+} from './utils/audio'
 
 // ==========================================================================
 // アプリ本体：がめんの きりかえ（ホーム / もんだい / けっか）と 進捗の 管理
@@ -28,14 +34,28 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
   // 「もういちど」で問題を作りなおすため、Game を つくりなおす ための カギ
   const [playKey, setPlayKey] = useState(0)
-  // おと（音声）の オン/オフ
-  const [soundOn, setSoundOn] = useState<boolean>(() => loadSoundEnabled())
+  // おと（BGM＋こうかおん：デフォルトオン）／ よみあげ（デフォルトオフ）
+  const [soundOn, setSoundOn] = useState<boolean>(() => loadSfxEnabled())
+  const [speechOn, setSpeechOn] = useState<boolean>(() => loadSpeechEnabled())
 
   function toggleSound() {
     const next = !soundOn
-    setSoundEnabled(next)
+    setSfxEnabled(next) // BGM の 開始/停止も この中で
     setSoundOn(next)
   }
+
+  function toggleSpeech() {
+    const next = !speechOn
+    setSpeechEnabled(next)
+    setSpeechOn(next)
+  }
+
+  // さいしょの タップ（ユーザー操作）で BGM を 開始（ブラウザの じどう再生 制限のため）
+  useEffect(() => {
+    const start = () => startBgm()
+    window.addEventListener('pointerdown', start, { once: true })
+    return () => window.removeEventListener('pointerdown', start)
+  }, [])
 
   // 進捗を こうしんして 保存する
   function updateProgress(next: Progress) {
@@ -129,7 +149,9 @@ export default function App() {
     <Home
       progress={progress}
       soundOn={soundOn}
+      speechOn={speechOn}
       onToggleSound={toggleSound}
+      onToggleSpeech={toggleSpeech}
       onStart={startStage}
       onUnlockAll={unlockAll}
       onReset={resetProgress}
@@ -141,7 +163,9 @@ export default function App() {
       <Home
         progress={progress}
         soundOn={soundOn}
+        speechOn={speechOn}
         onToggleSound={toggleSound}
+        onToggleSpeech={toggleSpeech}
         onStart={startStage}
         onUnlockAll={unlockAll}
         onReset={resetProgress}

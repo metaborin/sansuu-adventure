@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import type { StageMeta } from '../types'
-import { playClear, playWrong, speak } from '../utils/audio'
+import { playClear, playWrong, speakAuto } from '../utils/audio'
 
 // ==========================================================================
 // クリア（けっか）画面
@@ -40,10 +40,10 @@ export function Result({
   useEffect(() => {
     if (cleared) {
       playClear()
-      window.setTimeout(() => speak(leveledUp ? 'クリア！ レベルアップ！' : 'クリア！ おめでとう！'), 700)
+      window.setTimeout(() => speakAuto(leveledUp ? 'クリア！ レベルアップ！' : 'クリア！ おめでとう！'), 700)
     } else {
       playWrong()
-      window.setTimeout(() => speak('もういちど チャレンジ！'), 300)
+      window.setTimeout(() => speakAuto('もういちど チャレンジ！'), 300)
     }
     // マウント時に 1かいだけ
     // eslint-disable-next-line react-hooks/exhaustive-deps

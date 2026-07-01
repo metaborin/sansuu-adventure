@@ -10,13 +10,24 @@ import { clearedCount, isStageUnlocked, totalStars } from '../utils/storage'
 type Props = {
   progress: Progress
   soundOn: boolean
+  speechOn: boolean
   onToggleSound: () => void
+  onToggleSpeech: () => void
   onStart: (stageId: number) => void
   onUnlockAll: () => void
   onReset: () => void
 }
 
-export function Home({ progress, soundOn, onToggleSound, onStart, onUnlockAll, onReset }: Props) {
+export function Home({
+  progress,
+  soundOn,
+  speechOn,
+  onToggleSound,
+  onToggleSpeech,
+  onStart,
+  onUnlockAll,
+  onReset,
+}: Props) {
   const stars = totalStars(progress)
   const cleared = clearedCount(progress)
 
@@ -30,8 +41,8 @@ export function Home({ progress, soundOn, onToggleSound, onStart, onUnlockAll, o
         <button
           className="btn btn-round sound-toggle"
           onClick={onToggleSound}
-          aria-label={soundOn ? 'おとを けす' : 'おとを つける'}
-          title={soundOn ? 'おとを けす' : 'おとを つける'}
+          aria-label={soundOn ? 'おと（BGM・こうかおん）を けす' : 'おとを つける'}
+          title={soundOn ? 'おと（BGM・こうかおん）を けす' : 'おとを つける'}
         >
           {soundOn ? '🔊' : '🔇'}
         </button>
@@ -88,6 +99,17 @@ export function Home({ progress, soundOn, onToggleSound, onStart, onUnlockAll, o
 
       <div className="grown-up">
         <p className="grown-up-note">👨‍👩‍👧 おうちの ひと・せんせい むけ</p>
+        <div className="grown-up-btns">
+          <button className="btn btn-ghost" onClick={onToggleSound}>
+            {soundOn ? '🔊' : '🔇'} BGM・こうかおん：{soundOn ? 'オン' : 'オフ'}
+          </button>
+          <button className="btn btn-ghost" onClick={onToggleSpeech}>
+            {speechOn ? '🗣️' : '💤'} じどう よみあげ：{speechOn ? 'オン' : 'オフ'}
+          </button>
+        </div>
+        <p className="grown-up-hint">
+          ※ よみあげは はじめ オフです。もんだい画面の 🔊 ボタンで いつでも 読み上げできます。
+        </p>
         <div className="grown-up-btns">
           <button className="btn btn-ghost" onClick={onUnlockAll}>
             🔓 すべて かいほう

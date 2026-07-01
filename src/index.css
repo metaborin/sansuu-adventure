@@ -227,6 +227,12 @@ body {
   font-size: 0.95rem;
   color: #868e96;
 }
+.grown-up-hint {
+  font-size: 0.82rem;
+  color: #868e96;
+  margin: 8px 4px 12px;
+  line-height: 1.5;
+}
 .grown-up-btns {
   display: flex;
   gap: 10px;
@@ -885,6 +891,9 @@ body {
   .choices-row .choice {
     font-size: 1.05rem;
     padding: 14px 2px;
+  }
+  .game-title {
+    font-size: 1rem;
   }
   .stage-grid {
     grid-template-columns: repeat(2, 1fr);
