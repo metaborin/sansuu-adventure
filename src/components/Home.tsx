@@ -9,12 +9,14 @@ import { clearedCount, isStageUnlocked, totalStars } from '../utils/storage'
 
 type Props = {
   progress: Progress
+  soundOn: boolean
+  onToggleSound: () => void
   onStart: (stageId: number) => void
   onUnlockAll: () => void
   onReset: () => void
 }
 
-export function Home({ progress, onStart, onUnlockAll, onReset }: Props) {
+export function Home({ progress, soundOn, onToggleSound, onStart, onUnlockAll, onReset }: Props) {
   const stars = totalStars(progress)
   const cleared = clearedCount(progress)
 
@@ -25,6 +27,14 @@ export function Home({ progress, onStart, onUnlockAll, onReset }: Props) {
   return (
     <div className="home">
       <header className="home-head">
+        <button
+          className="btn btn-round sound-toggle"
+          onClick={onToggleSound}
+          aria-label={soundOn ? 'おとを けす' : 'おとを つける'}
+          title={soundOn ? 'おとを けす' : 'おとを つける'}
+        >
+          {soundOn ? '🔊' : '🔇'}
+        </button>
         <div className="home-badge">🎒</div>
         <h1 className="title">
           さんすうアドベンチャー

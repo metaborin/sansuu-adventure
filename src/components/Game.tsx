@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { StageMeta } from '../types'
 import { generateQuestions } from '../questions'
 import { VisualView } from './Visual'
+import { playCorrect, playTap, playWrong, speak, stopSpeak } from '../utils/audio'
 
 // ==========================================================================
 // 問題画面（1ステージ ＝ 5問）
@@ -15,11 +16,13 @@ type Props = {
   stage: StageMeta
   /** 難易度レベル（1〜3）。出題の むずかしさが 変わる */
   level: number
+  soundOn: boolean
+  onToggleSound: () => void
   onFinish: (correct: number) => void
   onQuit: () => void
 }
 
-export function Game({ stage, level, onFinish, onQuit }: Props) {
+export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }: Props) {
   // 5問を さいしょに 作って おく（このコンポーネントが 生きている あいだは 変わらない）
   const questions = useMemo(
     () => generateQuestions(stage.id, QUESTIONS_PER_STAGE, level),
@@ -36,6 +39,12 @@ export function Game({ stage, level, onFinish, onQuit }: Props) {
   const q = questions[index]
   const isLast = index === questions.length - 1
 
+  // あたらしい 問題に なったら、問題文を 読み上げる（おとが オンのとき・ベストエフォート）
+  useEffect(() => {
+    speak(q.prompt)
+    return () => stopSpeak()
+  }, [q.id, q.prompt])
+
   function choose(value: string) {
     if (solved) return
     if (wrong.includes(value)) return // すでに ちがった ボタンは 無視
@@ -43,13 +52,16 @@ export function Game({ stage, level, onFinish, onQuit }: Props) {
     if (value === q.answer) {
       if (attempts === 0) setCorrectCount((c) => c + 1) // 1回めの せいかいだけ 数える
       setSolved(true)
+      playCorrect()
     } else {
       setWrong((w) => [...w, value])
       setAttempts((a) => a + 1)
+      playWrong()
     }
   }
 
   function next() {
+    playTap()
     if (isLast) {
       if (finished) return
       setFinished(true)
@@ -77,6 +89,14 @@ export function Game({ stage, level, onFinish, onQuit }: Props) {
         <div className="game-title">
           {stage.emoji} {stage.title}
         </div>
+        <button
+          className="btn btn-round"
+          onClick={onToggleSound}
+          aria-label={soundOn ? 'おとを けす' : 'おとを つける'}
+          title={soundOn ? 'おとを けす' : 'おとを つける'}
+        >
+          {soundOn ? '🔊' : '🔇'}
+        </button>
         <div className="game-count">
           {index + 1}/{questions.length}
         </div>
@@ -91,7 +111,19 @@ export function Game({ stage, level, onFinish, onQuit }: Props) {
       </div>
 
       <div className="card question-card">
-        <p className="prompt">{q.prompt}</p>
+        <div className="prompt-row">
+          <p className="prompt">{q.prompt}</p>
+          {soundOn && (
+            <button
+              className="speak-btn"
+              onClick={() => speak(q.prompt)}
+              aria-label="もんだいを よみあげる"
+              title="もんだいを よみあげる"
+            >
+              🔊
+            </button>
+          )}
+        </div>
 
         <div className="visual-area">
           {/* 問題ごとに key を かえて、とうじょうアニメを まいかい さいせい */}

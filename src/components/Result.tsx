@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import type { StageMeta } from '../types'
+import { playClear, playWrong, speak } from '../utils/audio'
 
 // ==========================================================================
 // クリア（けっか）画面
@@ -34,6 +36,19 @@ export function Result({
   onReplay,
   onHome,
 }: Props) {
+  // けっか画面が でたら 音で しらせる（クリアは ファンファーレ）
+  useEffect(() => {
+    if (cleared) {
+      playClear()
+      window.setTimeout(() => speak(leveledUp ? 'クリア！ レベルアップ！' : 'クリア！ おめでとう！'), 700)
+    } else {
+      playWrong()
+      window.setTimeout(() => speak('もういちど チャレンジ！'), 300)
+    }
+    // マウント時に 1かいだけ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div className="result" style={{ ['--accent' as string]: stage.color }}>
       {cleared && (

@@ -12,6 +12,7 @@ import {
   saveProgress,
   starsForCorrect,
 } from './utils/storage'
+import { loadSoundEnabled, setSoundEnabled } from './utils/audio'
 
 // ==========================================================================
 // アプリ本体：がめんの きりかえ（ホーム / もんだい / けっか）と 進捗の 管理
@@ -27,6 +28,14 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>({ name: 'home' })
   // 「もういちど」で問題を作りなおすため、Game を つくりなおす ための カギ
   const [playKey, setPlayKey] = useState(0)
+  // おと（音声）の オン/オフ
+  const [soundOn, setSoundOn] = useState<boolean>(() => loadSoundEnabled())
+
+  function toggleSound() {
+    const next = !soundOn
+    setSoundEnabled(next)
+    setSoundOn(next)
+  }
 
   // 進捗を こうしんして 保存する
   function updateProgress(next: Progress) {
@@ -82,6 +91,8 @@ export default function App() {
         key={`${screen.stageId}-${playKey}`}
         stage={stage}
         level={progress.stages[screen.stageId]?.level ?? 1}
+        soundOn={soundOn}
+        onToggleSound={toggleSound}
         onFinish={(correct) => finishStage(screen.stageId, correct)}
         onQuit={() => setScreen({ name: 'home' })}
       />
@@ -117,6 +128,8 @@ export default function App() {
   return (
     <Home
       progress={progress}
+      soundOn={soundOn}
+      onToggleSound={toggleSound}
       onStart={startStage}
       onUnlockAll={unlockAll}
       onReset={resetProgress}
@@ -125,7 +138,14 @@ export default function App() {
 
   function FallbackHome() {
     return (
-      <Home progress={progress} onStart={startStage} onUnlockAll={unlockAll} onReset={resetProgress} />
+      <Home
+        progress={progress}
+        soundOn={soundOn}
+        onToggleSound={toggleSound}
+        onStart={startStage}
+        onUnlockAll={unlockAll}
+        onReset={resetProgress}
+      />
     )
   }
 }
