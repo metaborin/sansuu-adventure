@@ -13,7 +13,19 @@ React + TypeScript + Vite で作られています。
 
 ---
 
-## 🚀 じっこう方法（実行方法）
+## 🌐 あそべる場所（公開URL）
+
+スマホ・タブレット・PC のブラウザで、下のURLを開くだけで遊べます。
+インストール不要です。
+
+### 👉 https://metaborin.github.io/sansuu-adventure/
+
+- リポジトリ: https://github.com/metaborin/sansuu-adventure
+- ホーム画面に追加すると、アプリのように使えます（iPhone/iPad: 共有→「ホーム画面に追加」、Android: メニュー→「ホーム画面に追加」）。
+
+---
+
+## 🚀 じっこう方法（実行方法・ローカル開発）
 
 Node.js（18以上を推奨。開発は Node 24 で確認）が入っている状態で、
 このフォルダで以下を実行してください。
@@ -70,6 +82,21 @@ npm run preview   # ビルド結果をローカルで確認
 | 14 | えグラフを よもう | 絵グラフで多い・少ない | ○ 遊べる |
 
 すべてのステージが遊べる状態です（◎ は特に作り込んだMVP、○ は簡易版）。
+
+---
+
+## 🔄 更新のしかた（自動デプロイ）
+
+`main` ブランチに push すると、GitHub Actions が自動でビルドして
+上記の公開URLへデプロイします（設定: `.github/workflows/deploy.yml`）。
+
+```bash
+git add -A
+git commit -m "変更内容"
+git push
+```
+
+数十秒〜数分で公開サイトに反映されます。進捗状況は GitHub の「Actions」タブで確認できます。
 
 ---
 
