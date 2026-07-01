@@ -1,0 +1,88 @@
+// ==========================================================================
+// 型定義
+// アプリ全体で使う型をここにまとめています。
+// ==========================================================================
+
+/** えらぶボタン1つ分のデータ */
+export interface Choice {
+  /** ボタンに表示する文字（すうじ・えもじ・ことば） */
+  label: string
+  /** せいかいかどうかを判定するための値 */
+  value: string
+}
+
+/** かずのグループ（えもじ と こすう） */
+export interface Group {
+  emoji: string
+  count: number
+}
+
+/**
+ * 問題ごとの「見た目（イラスト・ブロックなど）」をあらわすデータ。
+ * kind によって描画するコンポーネントを切りかえます。
+ * 新しい見た目を追加したいときは、ここに 1 つ足して Visual.tsx に描画を追加します。
+ */
+export type Visual =
+  | { kind: 'objects'; emoji: string; count: number }
+  | { kind: 'compare'; left: Group; right: Group }
+  | { kind: 'ordinalRow'; items: string[]; from: 'front' | 'back'; targetIndex: number }
+  | { kind: 'tenAndOnes'; ones: number }
+  | { kind: 'sequence'; numbers: (number | null)[] }
+  | { kind: 'addBlocks'; a: number; b: number; emoji: string }
+  | { kind: 'subBlocks'; a: number; b: number; emoji: string }
+  | { kind: 'makeTen'; filled: number }
+  | { kind: 'addCarry'; a: number; b: number }
+  | { kind: 'subBorrow'; a: number; b: number }
+  | { kind: 'shapeObject'; emoji: string }
+  | { kind: 'measure'; variant: 'length' | 'area' | 'volume'; left: number; right: number }
+  | { kind: 'clock'; hour: number; minute: number }
+  | { kind: 'pictograph'; rows: { label: string; emoji: string; count: number }[] }
+  | { kind: 'none' }
+
+/** 1問分のデータ */
+export interface Question {
+  id: string
+  /** 問題文（みじかく・ひらがな中心） */
+  prompt: string
+  /** 見た目（イラスト・ブロックなど） */
+  visual: Visual
+  /** えらぶボタン */
+  choices: Choice[]
+  /** せいかいの value */
+  answer: string
+  /** まちがえたときに出すヒント */
+  hint: string
+}
+
+/** ステージの基本情報（一覧に表示する用） */
+export interface StageMeta {
+  id: number
+  /** タイトル（ひらがな） */
+  title: string
+  emoji: string
+  /** カードのいろ（アクセントカラー） */
+  color: string
+  /** なにを学ぶかの短い説明 */
+  goal: string
+  /** じっそう済みか（MVP でしっかり作ったか）。false でも簡易版で遊べます */
+  featured: boolean
+}
+
+/** 1ステージ分の進捗 */
+export interface StageProgress {
+  cleared: boolean
+  /** これまでの最高正解数（0〜5） */
+  bestCorrect: number
+  /** このステージで獲得したスター（0〜3） */
+  stars: number
+}
+
+/** localStorage に保存する進捗データ全体 */
+export interface Progress {
+  /** データ形式のバージョン（形式を変えたら数字を上げる） */
+  version: number
+  /** ステージID => 進捗 */
+  stages: Record<number, StageProgress>
+  /** せんせい・ほごしゃ用「すべて解放」がおされたか */
+  unlockedAll: boolean
+}

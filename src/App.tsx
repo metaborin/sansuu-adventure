@@ -1,0 +1,125 @@
+import { useState } from 'react'
+import type { Progress } from './types'
+import { getStage, STAGES } from './data/stages'
+import { Home } from './components/Home'
+import { Game } from './components/Game'
+import { Result } from './components/Result'
+import {
+  createEmptyProgress,
+  isStageUnlocked,
+  loadProgress,
+  saveProgress,
+  starsForCorrect,
+} from './utils/storage'
+
+// ==========================================================================
+// アプリ本体：がめんの きりかえ（ホーム / もんだい / けっか）と 進捗の 管理
+// ==========================================================================
+
+type Screen =
+  | { name: 'home' }
+  | { name: 'game'; stageId: number }
+  | { name: 'result'; stageId: number; correct: number }
+
+export default function App() {
+  const [progress, setProgress] = useState<Progress>(() => loadProgress())
+  const [screen, setScreen] = useState<Screen>({ name: 'home' })
+  // 「もういちど」で問題を作りなおすため、Game を つくりなおす ための カギ
+  const [playKey, setPlayKey] = useState(0)
+
+  // 進捗を こうしんして 保存する
+  function updateProgress(next: Progress) {
+    setProgress(next)
+    saveProgress(next)
+  }
+
+  function startStage(stageId: number) {
+    setPlayKey((k) => k + 1)
+    setScreen({ name: 'game', stageId })
+  }
+
+  function finishStage(stageId: number, correct: number) {
+    const prev = progress.stages[stageId] ?? { cleared: false, bestCorrect: 0, stars: 0 }
+    const gainedStars = starsForCorrect(correct)
+    const nowCleared = correct >= 4
+    const nextProgress: Progress = {
+      ...progress,
+      stages: {
+        ...progress.stages,
+        [stageId]: {
+          cleared: prev.cleared || nowCleared,
+          bestCorrect: Math.max(prev.bestCorrect, correct),
+          stars: Math.max(prev.stars, gainedStars),
+        },
+      },
+    }
+    updateProgress(nextProgress)
+    setScreen({ name: 'result', stageId, correct })
+  }
+
+  function unlockAll() {
+    const ok = window.confirm('すべての ステージを 解放しますか？（せんせい・ほごしゃ用）')
+    if (!ok) return
+    updateProgress({ ...progress, unlockedAll: true })
+  }
+
+  function resetProgress() {
+    const ok = window.confirm('しんちょくを ぜんぶ リセットしますか？ もとには もどせません。')
+    if (!ok) return
+    updateProgress(createEmptyProgress())
+    setScreen({ name: 'home' })
+  }
+
+  // --- 画面の きりかえ ------------------------------------------------------
+  if (screen.name === 'game') {
+    const stage = getStage(screen.stageId)
+    if (!stage) return <FallbackHome />
+    return (
+      <Game
+        key={`${screen.stageId}-${playKey}`}
+        stage={stage}
+        onFinish={(correct) => finishStage(screen.stageId, correct)}
+        onQuit={() => setScreen({ name: 'home' })}
+      />
+    )
+  }
+
+  if (screen.name === 'result') {
+    const stage = getStage(screen.stageId)
+    if (!stage) return <FallbackHome />
+    const sp = progress.stages[screen.stageId]
+    const cleared = screen.correct >= 4
+    const nextExists = STAGES.some((s) => s.id === screen.stageId + 1)
+    return (
+      <Result
+        stage={stage}
+        correct={screen.correct}
+        total={5}
+        stars={sp?.stars ?? starsForCorrect(screen.correct)}
+        cleared={cleared}
+        hasNext={cleared && nextExists}
+        onNext={() => {
+          if (isStageUnlocked(progress, screen.stageId + 1)) startStage(screen.stageId + 1)
+          else setScreen({ name: 'home' })
+        }}
+        onReplay={() => startStage(screen.stageId)}
+        onHome={() => setScreen({ name: 'home' })}
+      />
+    )
+  }
+
+  return (
+    <Home
+      progress={progress}
+      onStart={startStage}
+      onUnlockAll={unlockAll}
+      onReset={resetProgress}
+    />
+  )
+
+  function FallbackHome() {
+    return (
+      <Home progress={progress} onStart={startStage} onUnlockAll={unlockAll} onReset={resetProgress} />
+    )
+  }
+}

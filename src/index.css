@@ -1,0 +1,794 @@
+/* ==========================================================================
+   さんすうアドベンチャー 1ねんせい  スタイル
+   ・あかるい / まるい / おおきい 文字 の こども向けデザイン
+   ・スマホ・タブレット・PC で 見やすい レスポンシブ
+   ========================================================================== */
+
+:root {
+  --accent: #4c6ef5;
+  --ink: #3a2e1f;
+  --paper: #fffdf7;
+  --ok: #2fb344;
+  --ng: #ff6b6b;
+  --font: 'Hiragino Maru Gothic ProN', 'Yu Gothic UI', 'Segoe UI', 'Rounded Mplus 1c',
+    system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: linear-gradient(160deg, #fff3bf 0%, #ffd8a8 40%, #d0ebff 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  font-size: 18px;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+}
+
+/* --- ボタン共通 ---------------------------------------------------------- */
+.btn {
+  font-family: inherit;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.18);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.15s;
+  user-select: none;
+}
+.btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.btn-big {
+  display: block;
+  width: 100%;
+  font-size: 1.4rem;
+  padding: 18px;
+  margin: 14px 0;
+}
+.btn-start {
+  background: #ff922b;
+}
+.btn-next {
+  background: var(--ok);
+}
+.btn-ghost {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+  border: 3px solid #ffe08a;
+}
+.btn-round {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* --- ホーム -------------------------------------------------------------- */
+.home-head {
+  text-align: center;
+  margin: 6px 0 10px;
+}
+.home-badge {
+  font-size: 3rem;
+  animation: bob 2.4s ease-in-out infinite;
+}
+.title {
+  font-size: 2rem;
+  margin: 4px 0;
+  color: #e8590c;
+  text-shadow: 2px 2px 0 #fff;
+  line-height: 1.2;
+}
+.title-sub {
+  display: block;
+  font-size: 1.2rem;
+  color: #1c7ed6;
+}
+
+.summary {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 10px 0;
+}
+.summary-item {
+  background: #fff;
+  border-radius: 20px;
+  padding: 10px 20px;
+  text-align: center;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08);
+  min-width: 120px;
+}
+.summary-num {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.summary-cap {
+  font-size: 0.9rem;
+  color: #868e96;
+}
+
+/* --- ステージ一覧 -------------------------------------------------------- */
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.stage-card {
+  font-family: inherit;
+  position: relative;
+  background: #fff;
+  border: 4px solid var(--accent);
+  border-radius: 22px;
+  padding: 14px 8px 10px;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s;
+}
+.stage-card:active {
+  transform: scale(0.97);
+}
+.stage-card.locked {
+  border-color: #ced4da;
+  filter: grayscale(0.6);
+  cursor: default;
+  opacity: 0.75;
+}
+.stage-card.cleared {
+  background: #fff9db;
+}
+.stage-no {
+  position: absolute;
+  top: -12px;
+  left: -8px;
+  background: var(--accent);
+  color: #fff;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+.stage-emoji {
+  font-size: 2.6rem;
+  line-height: 1.1;
+}
+.stage-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin-top: 4px;
+  min-height: 2.4em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stage-stars .star {
+  color: #dee2e6;
+  font-size: 1.1rem;
+}
+.stage-stars .star.on {
+  color: #ffd43b;
+  text-shadow: 0 1px 0 #f08c00;
+}
+
+/* --- おとな向け ---------------------------------------------------------- */
+.grown-up {
+  margin-top: 24px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 18px;
+  border: 2px dashed #ffc078;
+  text-align: center;
+}
+.grown-up-note {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: #868e96;
+}
+.grown-up-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.grown-up-btns .btn {
+  font-size: 1rem;
+  padding: 10px 16px;
+}
+
+/* --- 問題画面 ------------------------------------------------------------ */
+.game-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.game-title {
+  flex: 1;
+  font-weight: 800;
+  font-size: 1.2rem;
+  text-align: center;
+  color: var(--accent);
+}
+.game-count {
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 800;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+.dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #ffd8a8;
+}
+.dot.done {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+.dot.now {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.25);
+}
+
+.card {
+  background: var(--paper);
+  border-radius: 26px;
+  padding: 20px 16px;
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.08);
+}
+.prompt {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 4px 0 16px;
+  line-height: 1.4;
+}
+.visual-area {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+/* --- フィードバック ------------------------------------------------------ */
+.feedback {
+  border-radius: 16px;
+  padding: 12px 16px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 12px;
+  animation: pop 0.25s ease;
+}
+.feedback.ok {
+  background: #d3f9d8;
+  color: #2b8a3e;
+  font-size: 1.3rem;
+}
+.feedback.hint {
+  background: #fff3bf;
+  color: #a5730a;
+  font-size: 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+.hint-badge {
+  background: #ffe066;
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 0.95rem;
+}
+
+/* --- えらぶボタン -------------------------------------------------------- */
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.choice {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1.8rem;
+  background: #fff;
+  color: var(--ink);
+  border: 4px solid var(--accent);
+  border-radius: 20px;
+  padding: 18px 8px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.12);
+  transition: transform 0.08s;
+  min-height: 68px;
+}
+.choice:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+.choice:disabled {
+  cursor: default;
+}
+.choice-wrong {
+  background: #ffe3e3;
+  border-color: var(--ng);
+  color: #c92a2a;
+  opacity: 0.7;
+}
+.choice-right {
+  background: #d3f9d8;
+  border-color: var(--ok);
+  color: #2b8a3e;
+  animation: pop 0.3s ease;
+}
+
+/* ==========================================================================
+   ビジュアル（イラスト・ブロック）
+   ========================================================================== */
+.objects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 360px;
+}
+.obj {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+.obj.sm {
+  font-size: 2rem;
+}
+.obj.gone {
+  opacity: 0.28;
+  filter: grayscale(1);
+  position: relative;
+}
+.obj.gone::after {
+  content: '✕';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--ng);
+  font-size: 1.6rem;
+}
+
+/* くらべる */
+.compare {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.compare-col {
+  flex: 1;
+  text-align: center;
+}
+.compare-label {
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+.compare-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 4px;
+}
+.compare-divider {
+  width: 4px;
+  align-self: stretch;
+  background: #ffe08a;
+  border-radius: 2px;
+}
+
+/* じゅんばん */
+.ordinal {
+  width: 100%;
+}
+.ordinal-ends {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.ordinal-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.ordinal-item {
+  padding: 4px;
+  border-radius: 14px;
+}
+.ordinal-item.target {
+  background: #fff3bf;
+  outline: 4px solid #ffd43b;
+  animation: pop 0.3s ease;
+}
+
+/* 10のわく（ブロック） */
+.tenframe {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  background: #f1f3f5;
+  padding: 6px;
+  border-radius: 12px;
+  border: 3px solid #ced4da;
+}
+.cell {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #fff;
+}
+.cell-blue {
+  background: #4dabf7;
+}
+.cell-green {
+  background: #69db7c;
+}
+.cell-empty {
+  background: #fff;
+  border: 2px dashed #ced4da;
+}
+.cell-take {
+  background: #ffc9c9;
+  color: var(--ng);
+}
+.ones {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 120px;
+  justify-content: center;
+}
+.ones .cell {
+  width: 24px;
+  height: 24px;
+}
+
+.blocks-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.group {
+  text-align: center;
+}
+.group-cap {
+  margin-top: 6px;
+  font-weight: 800;
+  color: var(--accent);
+}
+.plus {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #868e96;
+}
+
+/* え で たしざん */
+.dish {
+  background: #fff9db;
+  border: 3px solid #ffe08a;
+  border-radius: 18px;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  max-width: 150px;
+}
+.dish.wide {
+  max-width: 320px;
+}
+
+/* かずの ならび */
+.sequence {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.seq-box {
+  min-width: 48px;
+  height: 56px;
+  padding: 0 6px;
+  background: #fff;
+  border: 3px solid var(--accent);
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+.seq-blank {
+  background: #fff3bf;
+  border-style: dashed;
+  color: #f08c00;
+}
+
+/* かたち */
+.shape-object {
+  font-size: 5rem;
+}
+
+/* ながさ・ひろさ・かさ */
+.measure-col {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.measure-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pencil {
+  height: 26px;
+  background: linear-gradient(90deg, #ffd43b, #f59f00);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  font-size: 1.2rem;
+}
+.measure-tag {
+  font-weight: 800;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.measure-pair {
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+}
+.measure-item {
+  text-align: center;
+}
+.rug {
+  background: repeating-linear-gradient(45deg, #63e6be, #63e6be 8px, #38d9a9 8px, #38d9a9 16px);
+  border-radius: 12px;
+  margin: 0 auto 6px;
+  border: 3px solid #0ca678;
+}
+.cup {
+  width: 60px;
+  height: 90px;
+  border: 4px solid #adb5bd;
+  border-top: none;
+  border-radius: 0 0 18px 18px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  margin: 0 auto 6px;
+  background: #fff;
+}
+.water {
+  width: 100%;
+  background: linear-gradient(180deg, #74c0fc, #4dabf7);
+  border-radius: 0 0 12px 12px;
+}
+
+/* とけい */
+.clock {
+  width: 220px;
+  height: 220px;
+  max-width: 62vw;
+}
+.clock-num {
+  font-size: 16px;
+  font-weight: 800;
+  fill: #495057;
+  font-family: var(--font);
+}
+
+/* えグラフ */
+.pictograph {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.picto-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 6px 10px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.06);
+}
+.picto-label {
+  width: 68px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.picto-icons {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+.picto-icon {
+  font-size: 1.7rem;
+}
+
+/* ==========================================================================
+   けっか画面
+   ========================================================================== */
+.result {
+  position: relative;
+  padding-top: 10px;
+}
+.result-card {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+.result-face {
+  font-size: 4.5rem;
+  animation: bob 1.6s ease-in-out infinite;
+}
+.result-title {
+  color: #e8590c;
+  font-size: 1.7rem;
+  margin: 6px 0;
+}
+.result-score {
+  font-size: 1.3rem;
+}
+.result-score b {
+  color: var(--ok);
+  font-size: 1.8rem;
+}
+.result-stars {
+  margin: 12px 0;
+}
+.big-star {
+  font-size: 3.2rem;
+  color: #dee2e6;
+  display: inline-block;
+}
+.big-star.on {
+  color: #ffd43b;
+  text-shadow: 0 2px 0 #f08c00;
+}
+.result-msg {
+  color: #868e96;
+}
+.result-btns {
+  margin-top: 10px;
+}
+
+/* こんふぇってぃ */
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.confetti-piece {
+  position: absolute;
+  top: -40px;
+  font-size: 1.8rem;
+  animation: fall 2.6s linear infinite;
+}
+
+/* ==========================================================================
+   アニメーション
+   ========================================================================== */
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.pop {
+  animation: pop 0.3s ease both;
+}
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes fall {
+  0% {
+    transform: translateY(-40px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(105vh) rotate(360deg);
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+  }
+}
+
+/* ちいさい がめん */
+@media (max-width: 380px) {
+  body {
+    font-size: 16px;
+  }
+  .title {
+    font-size: 1.6rem;
+  }
+  .choice {
+    font-size: 1.5rem;
+  }
+  .stage-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
