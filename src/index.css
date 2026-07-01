@@ -376,6 +376,7 @@ body {
   font-size: 1.3rem;
   padding: 16px 4px;
   min-width: 0; /* ちいさい がめんでも つぶれて はみ出さない */
+  white-space: nowrap; /* 「ひだり」などが とちゅうで 改行されないように */
 }
 .choice {
   font-family: inherit;
@@ -495,15 +496,20 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
 }
 .compare-col {
-  flex: 1;
+  flex: 1 1 0; /* 左右を おなじ はばに して、絵を そろえる */
+  min-width: 0;
   text-align: center;
 }
 .compare-label {
   font-weight: 800;
   margin-bottom: 6px;
   color: var(--accent);
+  white-space: nowrap; /* 「ひだり」を 1行に して 高さを そろえる */
 }
 .compare-stack {
   display: flex;
@@ -878,7 +884,8 @@ body {
 }
 
 /* ちいさい がめん */
-@media (max-width: 380px) {
+/* スマホ全般（iPhone 13 Pro=390px なども ふくむ） */
+@media (max-width: 430px) {
   body {
     font-size: 16px;
   }
@@ -889,7 +896,7 @@ body {
     font-size: 1.5rem;
   }
   .choices-row .choice {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     padding: 14px 2px;
   }
   .game-title {
@@ -897,5 +904,14 @@ body {
   }
   .stage-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ちいさめの スマホ（iPhone SE=375px 以下など） */
+@media (max-width: 375px) {
+  .choices-row .choice {
+    font-size: 0.92rem;
+    padding: 12px 1px;
+    letter-spacing: -0.02em;
   }
 }
