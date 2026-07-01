@@ -8,3 +8,15 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>
 )
+
+// PWA：本番ビルドのときだけ Service Worker を登録（オフラインでも あそべる）
+// 開発中（npm run dev）は キャッシュが じゃまに なるので 登録しない。
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`)
+      .catch(() => {
+        // 登録に しっぱいしても ゲームは ふつうに あそべる
+      })
+  })
+}

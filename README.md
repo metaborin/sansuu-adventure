@@ -33,7 +33,17 @@ React + TypeScript + Vite で作られています。
 ### 👉 https://metaborin.github.io/sansuu-adventure/
 
 - リポジトリ: https://github.com/metaborin/sansuu-adventure
-- ホーム画面に追加すると、アプリのように使えます（iPhone/iPad: 共有→「ホーム画面に追加」、Android: メニュー→「ホーム画面に追加」）。
+
+### 📲 アプリとして入れる（PWA対応）
+
+このゲームは **PWA（プログレッシブWebアプリ）** です。ホーム画面に追加すると、
+**専用アイコンからアプリのように全画面で起動**でき、**一度開けばオフライン（通信なし）でも遊べます**。
+
+- **iPhone / iPad**: Safariで開く → 共有ボタン → 「ホーム画面に追加」
+- **Android**: Chromeで開く → メニュー（︙） → 「ホーム画面に追加」（または「アプリをインストール」）
+- **PC (Chrome/Edge)**: アドレスバー右端のインストールアイコンをクリック
+
+タブレット教室などネットが不安定な環境でも、一度読み込んでおけば安心して使えます。
 
 ---
 
@@ -119,6 +129,10 @@ git push
 ├── index.html
 ├── package.json / tsconfig*.json / vite.config.ts
 ├── README.md
+├── public/                   … そのまま配信されるファイル（PWA関連）
+│   ├── manifest.webmanifest  … アプリ情報（名前・アイコン・起動設定）
+│   ├── sw.js                 … Service Worker（オフライン用キャッシュ）
+│   └── icon-*.png / apple-touch-icon.png … アプリアイコン
 └── src/
     ├── main.tsx              … エントリーポイント
     ├── App.tsx               … 画面切り替え（ホーム/問題/結果）＋進捗管理

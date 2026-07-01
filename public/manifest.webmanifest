@@ -1,0 +1,32 @@
+{
+  "name": "さんすうアドベンチャー 1ねんせい",
+  "short_name": "さんすう",
+  "description": "小学1年生向けの算数学習ゲーム。かぞえる・くらべる・たしざん・ひきざん・とけいなどを、1回3〜5分のミニゲームで楽しく学べます。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff3bf",
+  "theme_color": "#ffd166",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
