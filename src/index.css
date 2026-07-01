@@ -333,6 +333,15 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
+/* いちを あらわす 3たく（ひだり・おなじ・みぎ）は よこ1れつに */
+.choices-row {
+  grid-template-columns: repeat(3, 1fr);
+}
+.choices-row .choice {
+  font-size: 1.3rem;
+  padding: 16px 4px;
+  min-width: 0; /* ちいさい がめんでも つぶれて はみ出さない */
+}
 .choice {
   font-family: inherit;
   font-weight: 800;
@@ -843,6 +852,10 @@ body {
   }
   .choice {
     font-size: 1.5rem;
+  }
+  .choices-row .choice {
+    font-size: 1.05rem;
+    padding: 14px 2px;
   }
   .stage-grid {
     grid-template-columns: repeat(2, 1fr);

@@ -48,6 +48,12 @@ export interface Question {
   visual: Visual
   /** えらぶボタン */
   choices: Choice[]
+  /**
+   * えらぶボタンの ならべかた。
+   * 'row' … よこ1れつ（「ひだり・おなじ・みぎ」のような いちを あらわす 3たくむき）
+   * それいがい（未指定）… 2れつ グリッド（すうじの 4たくなど）
+   */
+  choiceLayout?: 'grid' | 'row'
   /** せいかいの value */
   answer: string
   /**

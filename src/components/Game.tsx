@@ -110,7 +110,7 @@ export function Game({ stage, level, onFinish, onQuit }: Props) {
           </div>
         )}
 
-        <div className="choices">
+        <div className={`choices ${q.choiceLayout === 'row' ? 'choices-row' : ''}`}>
           {q.choices.map((c) => {
             const isWrong = wrong.includes(c.value)
             const isAnswer = solved && c.value === q.answer

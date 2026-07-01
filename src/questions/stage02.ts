@@ -33,6 +33,8 @@ export function generateStage2(level: number): Question {
     id: uid(),
     prompt,
     visual: { kind: 'compare', left: { emoji: le, count: left }, right: { emoji: re, count: right } },
+    // ひだり・おなじ・みぎ は いちを あらわすので、よこ1れつ で ならべる
+    choiceLayout: 'row',
     choices: [
       { label: '⬅️ ひだり', value: 'left' },
       { label: '🟰 おなじ', value: 'same' },
