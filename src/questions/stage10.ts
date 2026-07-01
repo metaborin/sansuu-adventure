@@ -1,9 +1,11 @@
 import type { Question } from '../types'
-import { numberChoices, randInt, uid } from '../utils/random'
+import { byLevel, numberChoices, randInt, uid } from '../utils/random'
 
 // ステージ10：ひきざん その2（くりさがり あり。10の まとまりから ひく）
-export function generateStage10(): Question {
-  const a = randInt(11, 18)
+// レベルで はじめの かずの おおきさを 変える
+export function generateStage10(level: number): Question {
+  const maxA = byLevel(level, [13, 15, 18])
+  const a = randInt(11, maxA)
   const onesA = a - 10
   // ばらだけでは ひけない ように、b > onesA にする（くりさがり あり）
   const b = randInt(onesA + 1, 9)
@@ -15,6 +17,9 @@ export function generateStage10(): Question {
     visual: { kind: 'subBorrow', a, b },
     choices: numberChoices(answer, { min: 1, max: 10 }),
     answer: String(answer),
-    hint: `10の まとまりから ${b}を ひいて、のこりの ${10 - b}と ${onesA}を あわせよう！`,
+    hints: [
+      `10の まとまりから ${b}を ひこう。`,
+      `10 - ${b} = ${10 - b}。それに ばらの ${onesA}を たして ${answer}だね。`,
+    ],
   }
 }

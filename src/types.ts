@@ -50,8 +50,13 @@ export interface Question {
   choices: Choice[]
   /** せいかいの value */
   answer: string
-  /** まちがえたときに出すヒント */
-  hint: string
+  /**
+   * まちがえたときに出す「段階ヒント」。
+   * 1回目のまちがい → hints[0]（やさしいナッジ）
+   * 2回目いこう     → hints[1]…（より具体的）
+   * 配列は 1つ以上。少なくとも 2つ用意すると段階的になります。
+   */
+  hints: string[]
 }
 
 /** ステージの基本情報（一覧に表示する用） */
@@ -75,6 +80,11 @@ export interface StageProgress {
   bestCorrect: number
   /** このステージで獲得したスター（0〜3） */
   stars: number
+  /**
+   * 難易度レベル（1〜3）。直近の成績で自動調整する。
+   * 全問正解でレベルアップ、2問以下でレベルダウン。
+   */
+  level: number
 }
 
 /** localStorage に保存する進捗データ全体 */

@@ -11,13 +11,29 @@ type Props = {
   total: number
   stars: number
   cleared: boolean
+  /** 難易度が あがったか（つぎの プレイから むずかしくなる） */
+  leveledUp: boolean
+  /** いまの（つぎに つかう）難易度レベル */
+  newLevel: number
   hasNext: boolean
   onNext: () => void
   onReplay: () => void
   onHome: () => void
 }
 
-export function Result({ stage, correct, total, stars, cleared, hasNext, onNext, onReplay, onHome }: Props) {
+export function Result({
+  stage,
+  correct,
+  total,
+  stars,
+  cleared,
+  leveledUp,
+  newLevel,
+  hasNext,
+  onNext,
+  onReplay,
+  onHome,
+}: Props) {
   return (
     <div className="result" style={{ ['--accent' as string]: stage.color }}>
       {cleared && (
@@ -45,6 +61,12 @@ export function Result({ stage, correct, total, stars, cleared, hasNext, onNext,
             </span>
           ))}
         </div>
+
+        {leveledUp && (
+          <div className="levelup pop">
+            ⬆️ レベルアップ！<span>つぎは レベル {newLevel}。もうすこし むずかしくなるよ！</span>
+          </div>
+        )}
 
         {!cleared && <p className="result-msg">4もん せいかいで クリアだよ。もういちど チャレンジ！</p>}
 

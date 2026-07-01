@@ -1,12 +1,14 @@
 import type { Question } from '../types'
-import { numberChoices, randInt, sample, uid } from '../utils/random'
+import { byLevel, numberChoices, randInt, sample, uid } from '../utils/random'
 
-// ステージ6：たしざん その1（くりあがり なし、こたえは 9 まで）
+// ステージ6：たしざん その1（くりあがり なし）
+// レベルで こたえの おおきさ（わの じょうげん）を 変える
 const EMOJIS = ['🍎', '⭐', '🍓', '🎈', '🐟', '🧱']
 
-export function generateStage6(): Question {
-  const a = randInt(1, 8)
-  const b = randInt(1, 9 - a) // a + b <= 9 なので くりあがりなし
+export function generateStage6(level: number): Question {
+  const sumCap = byLevel(level, [6, 8, 9]) // くりあがらない ように 9 まで
+  const a = randInt(1, sumCap - 1)
+  const b = randInt(1, sumCap - a)
   const answer = a + b
   const emoji = sample(EMOJIS)
 
@@ -16,6 +18,9 @@ export function generateStage6(): Question {
     visual: { kind: 'addBlocks', a, b, emoji },
     choices: numberChoices(answer, { min: 0, max: 10 }),
     answer: String(answer),
-    hint: 'ぜんぶの えを、いっしょに かぞえてみよう！',
+    hints: [
+      'ぜんぶの えを、いっしょに かぞえてみよう！',
+      `さいしょの ${a}から つづけて「${a + 1}・${a + 2}…」と ${b}こ すすもう。`,
+    ],
   }
 }

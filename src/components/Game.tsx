@@ -13,13 +13,18 @@ const QUESTIONS_PER_STAGE = 5
 
 type Props = {
   stage: StageMeta
+  /** 難易度レベル（1〜3）。出題の むずかしさが 変わる */
+  level: number
   onFinish: (correct: number) => void
   onQuit: () => void
 }
 
-export function Game({ stage, onFinish, onQuit }: Props) {
+export function Game({ stage, level, onFinish, onQuit }: Props) {
   // 5問を さいしょに 作って おく（このコンポーネントが 生きている あいだは 変わらない）
-  const questions = useMemo(() => generateQuestions(stage.id, QUESTIONS_PER_STAGE), [stage.id])
+  const questions = useMemo(
+    () => generateQuestions(stage.id, QUESTIONS_PER_STAGE, level),
+    [stage.id, level]
+  )
 
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
@@ -57,7 +62,11 @@ export function Game({ stage, onFinish, onQuit }: Props) {
     setSolved(false)
   }
 
+  // 段階ヒント：まちがえた かいすうに あわせて だんだん くわしく
   const showHint = attempts > 0 && !solved
+  const currentHint = showHint ? q.hints[Math.min(attempts - 1, q.hints.length - 1)] : ''
+  // 2かい まちがえたら、せいかいの ボタンを やさしく ひからせて つまり防止
+  const reveal = !solved && attempts >= 2
 
   return (
     <div className="game" style={{ ['--accent' as string]: stage.color }}>
@@ -73,6 +82,8 @@ export function Game({ stage, onFinish, onQuit }: Props) {
         </div>
       </div>
 
+      {level > 1 && <div className="level-chip">レベル {level}</div>}
+
       <div className="dots">
         {questions.map((_, i) => (
           <span key={i} className={`dot ${i < index ? 'done' : ''} ${i === index ? 'now' : ''}`} />
@@ -83,7 +94,8 @@ export function Game({ stage, onFinish, onQuit }: Props) {
         <p className="prompt">{q.prompt}</p>
 
         <div className="visual-area">
-          <VisualView visual={q.visual} revealed={solved} />
+          {/* 問題ごとに key を かえて、とうじょうアニメを まいかい さいせい */}
+          <VisualView key={q.id} visual={q.visual} revealed={solved} />
         </div>
 
         {solved && (
@@ -93,8 +105,8 @@ export function Game({ stage, onFinish, onQuit }: Props) {
         )}
         {showHint && (
           <div className="feedback hint" role="status">
-            <span className="hint-badge">💡 ヒント</span>
-            <span>もういちど かぞえてみよう。{q.hint}</span>
+            <span className="hint-badge">💡 ヒント {q.hints.length > 1 ? `(${Math.min(attempts, q.hints.length)})` : ''}</span>
+            <span>だいじょうぶ！ もういちど やってみよう。{currentHint}</span>
           </div>
         )}
 
@@ -102,10 +114,14 @@ export function Game({ stage, onFinish, onQuit }: Props) {
           {q.choices.map((c) => {
             const isWrong = wrong.includes(c.value)
             const isAnswer = solved && c.value === q.answer
+            // 2かい まちがえた あと、せいかいの ボタンだけ ひかって みちびく
+            const isRevealed = reveal && !isWrong && c.value === q.answer
             return (
               <button
                 key={c.value}
-                className={`choice ${isWrong ? 'choice-wrong' : ''} ${isAnswer ? 'choice-right' : ''}`}
+                className={`choice ${isWrong ? 'choice-wrong' : ''} ${isAnswer ? 'choice-right' : ''} ${
+                  isRevealed ? 'choice-reveal' : ''
+                }`}
                 onClick={() => choose(c.value)}
                 disabled={solved || isWrong}
               >

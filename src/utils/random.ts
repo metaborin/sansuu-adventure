@@ -38,6 +38,16 @@ export function uid(): string {
 }
 
 /**
+ * 難易度レベル（1〜3）に応じて、3つの候補から1つを選ぶ。
+ * 例: byLevel(level, [20, 50, 100]) … レベル1→20, レベル2→50, レベル3→100
+ * レベルが範囲外でも安全に丸めます。
+ */
+export function byLevel<T>(level: number, values: [T, T, T]): T {
+  const i = Math.min(Math.max(Math.round(level), 1), 3) - 1
+  return values[i]
+}
+
+/**
  * すうじの えらぶボタンを作る。
  * せいかい + にせもの（近い数）を混ぜて、シャッフルして返す。
  */

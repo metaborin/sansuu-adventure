@@ -61,6 +61,7 @@ export function Home({ progress, onStart, onUnlockAll, onReset }: Props) {
               aria-label={`ステージ${s.id} ${s.title}`}
             >
               <div className="stage-no">{s.id}</div>
+              {unlocked && sp && sp.level > 1 && <div className="stage-level">Lv{sp.level}</div>}
               <div className="stage-emoji">{unlocked ? s.emoji : '🔒'}</div>
               <div className="stage-title">{s.title}</div>
               <div className="stage-stars">

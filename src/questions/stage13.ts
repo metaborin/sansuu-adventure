@@ -1,8 +1,8 @@
 import type { Choice, Question } from '../types'
-import { randInt, sample, shuffle, uid } from '../utils/random'
+import { byLevel, randInt, sample, shuffle, uid } from '../utils/random'
 
 // ステージ13：とけいを よもう（「なんじ」ちゅうしん・ときどき「なんじはん」）
-// 学校生活と むすびつけた ばめんつき
+// レベルで「はん」の でやすさを 変える（L1 は「ちょうど なんじ」だけ）
 const SCENES = [
   { hour: 8, text: '🏫 がっこうに いく じかん' },
   { hour: 10, text: '📖 べんきょうの じかん' },
@@ -31,12 +31,13 @@ function timeChoices(hour: number, minute: number): Choice[] {
   return shuffle([...set.values()])
 }
 
-export function generateStage13(): Question {
-  const useScene = Math.random() < 0.5
-  const half = Math.random() < 0.3 // ときどき「はん」
+export function generateStage13(level: number): Question {
+  const halfChance = byLevel(level, [0, 0.3, 0.5])
+  const half = Math.random() < halfChance
   const minute = half ? 30 : 0
+  const useScene = !half && Math.random() < 0.5
 
-  if (useScene && !half) {
+  if (useScene) {
     const scene = sample(SCENES)
     return {
       id: uid(),
@@ -44,7 +45,10 @@ export function generateStage13(): Question {
       visual: { kind: 'clock', hour: scene.hour, minute: 0 },
       choices: timeChoices(scene.hour, 0),
       answer: `${scene.hour}:0`,
-      hint: 'みじかい はりが さして いる すうじを よもう。',
+      hints: [
+        'みじかい はりが さして いる すうじを よもう。',
+        'ながい はりが うえ（12）を さして いたら「ちょうど なんじ」だよ。',
+      ],
     }
   }
 
@@ -55,8 +59,8 @@ export function generateStage13(): Question {
     visual: { kind: 'clock', hour, minute },
     choices: timeChoices(hour, minute),
     answer: `${hour}:${minute}`,
-    hint: half
-      ? 'ながい はりが した（6）を さして いたら「はん」だよ。'
-      : 'みじかい はりが さして いる すうじを よもう。',
+    hints: half
+      ? ['ながい はりが した（6）を さして いたら「はん」だよ。', 'みじかい はりが すぎた すうじが「なんじ」。ながい はりが 6なら「はん」。']
+      : ['みじかい はりが さして いる すうじを よもう。', 'ながい はりが うえ（12）なら「ちょうど なんじ」だよ。'],
   }
 }

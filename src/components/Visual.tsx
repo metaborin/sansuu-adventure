@@ -41,7 +41,7 @@ export function VisualView({ visual, revealed }: Props) {
     case 'subBorrow':
       return <SubBorrow a={visual.a} b={visual.b} />
     case 'shapeObject':
-      return <div className="shape-object">{visual.emoji}</div>
+      return <div className="shape-object pop">{visual.emoji}</div>
     case 'measure':
       return <Measure variant={visual.variant} left={visual.left} right={visual.right} />
     case 'clock':
@@ -74,7 +74,7 @@ function Compare({ left, right }: { left: { emoji: string; count: number }; righ
         <div className="compare-label">ひだり</div>
         <div className="compare-stack">
           {Array.from({ length: left.count }).map((_, i) => (
-            <span key={i} className="obj">{left.emoji}</span>
+            <span key={i} className="obj pop" style={{ animationDelay: `${i * 60}ms` }}>{left.emoji}</span>
           ))}
         </div>
       </div>
@@ -83,7 +83,7 @@ function Compare({ left, right }: { left: { emoji: string; count: number }; righ
         <div className="compare-label">みぎ</div>
         <div className="compare-stack">
           {Array.from({ length: right.count }).map((_, i) => (
-            <span key={i} className="obj">{right.emoji}</span>
+            <span key={i} className="obj pop" style={{ animationDelay: `${i * 60}ms` }}>{right.emoji}</span>
           ))}
         </div>
       </div>
@@ -111,7 +111,11 @@ function OrdinalRow({
       </div>
       <div className="ordinal-row">
         {items.map((it, i) => (
-          <span key={i} className={`obj ordinal-item ${revealed && i === targetIndex ? 'target' : ''}`}>
+          <span
+            key={i}
+            className={`obj ordinal-item pop ${revealed && i === targetIndex ? 'target' : ''}`}
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
             {it}
           </span>
         ))}
@@ -129,7 +133,7 @@ function TenFrame({ cells }: { cells: CellState[] }) {
   return (
     <div className="tenframe">
       {padded.slice(0, 10).map((c, i) => (
-        <div key={i} className={`cell cell-${c}`}>
+        <div key={i} className={`cell cell-${c} pop`} style={{ animationDelay: `${i * 35}ms` }}>
           {c === 'take' ? '✕' : ''}
         </div>
       ))}
@@ -149,7 +153,7 @@ function TenAndOnes({ ones }: { ones: number }) {
       <div className="group">
         <div className="ones">
           {Array.from({ length: ones }).map((_, i) => (
-            <div key={i} className="cell cell-green" />
+            <div key={i} className="cell cell-green pop" style={{ animationDelay: `${i * 45}ms` }} />
           ))}
         </div>
         <div className="group-cap">{ones}</div>
@@ -163,7 +167,11 @@ function Sequence({ numbers }: { numbers: (number | null)[] }) {
   return (
     <div className="sequence">
       {numbers.map((n, i) => (
-        <div key={i} className={`seq-box ${n === null ? 'seq-blank' : ''}`}>
+        <div
+          key={i}
+          className={`seq-box pop ${n === null ? 'seq-blank' : ''}`}
+          style={{ animationDelay: `${i * 70}ms` }}
+        >
           {n === null ? '?' : n}
         </div>
       ))}
@@ -177,13 +185,13 @@ function AddBlocks({ a, b, emoji }: { a: number; b: number; emoji: string }) {
     <div className="blocks-row">
       <div className="dish">
         {Array.from({ length: a }).map((_, i) => (
-          <span key={i} className="obj sm">{emoji}</span>
+          <span key={i} className="obj sm pop" style={{ animationDelay: `${i * 50}ms` }}>{emoji}</span>
         ))}
       </div>
       <div className="plus">＋</div>
       <div className="dish">
         {Array.from({ length: b }).map((_, i) => (
-          <span key={i} className="obj sm">{emoji}</span>
+          <span key={i} className="obj sm pop" style={{ animationDelay: `${(a + i) * 50}ms` }}>{emoji}</span>
         ))}
       </div>
     </div>
@@ -195,7 +203,7 @@ function SubBlocks({ a, b, emoji }: { a: number; b: number; emoji: string }) {
   return (
     <div className="dish wide">
       {Array.from({ length: a }).map((_, i) => (
-        <span key={i} className={`obj sm ${i >= a - b ? 'gone' : ''}`}>
+        <span key={i} className={`obj sm pop ${i >= a - b ? 'gone' : ''}`} style={{ animationDelay: `${i * 50}ms` }}>
           {emoji}
         </span>
       ))}
@@ -256,7 +264,7 @@ function SubBorrow({ a, b }: { a: number; b: number }) {
       <div className="group">
         <div className="ones">
           {Array.from({ length: onesA }).map((_, i) => (
-            <div key={i} className="cell cell-blue" />
+            <div key={i} className="cell cell-blue pop" style={{ animationDelay: `${i * 45}ms` }} />
           ))}
         </div>
         <div className="group-cap">{onesA}</div>
@@ -322,7 +330,7 @@ function Clock({ hour, minute }: { hour: number; minute: number }) {
   const my = cy + 62 * Math.sin((minAngle * Math.PI) / 180)
 
   return (
-    <svg viewBox="0 0 200 200" className="clock" role="img" aria-label="とけい">
+    <svg viewBox="0 0 200 200" className="clock pop" role="img" aria-label="とけい">
       <circle cx={cx} cy={cy} r="92" fill="#fffdf7" stroke="#ffb703" strokeWidth="8" />
       {Array.from({ length: 12 }).map((_, i) => {
         const n = i + 1
@@ -346,8 +354,8 @@ function Clock({ hour, minute }: { hour: number; minute: number }) {
 function Pictograph({ rows }: { rows: { label: string; emoji: string; count: number }[] }) {
   return (
     <div className="pictograph">
-      {rows.map((r) => (
-        <div key={r.label} className="picto-row">
+      {rows.map((r, i) => (
+        <div key={r.label} className="picto-row pop" style={{ animationDelay: `${i * 120}ms` }}>
           <span className="picto-label">{r.label}</span>
           <span className="picto-icons">
             {Array.from({ length: r.count }).map((_, i) => (

@@ -1,7 +1,8 @@
 import type { Question } from '../types'
-import { randInt, sampleMany, shuffle, uid } from '../utils/random'
+import { byLevel, sampleMany, shuffle, uid } from '../utils/random'
 
 // ステージ14：えグラフを よもう（えグラフで かずを くらべる）
+// レベルで しゅるいの かずと、かずの おおきさを 変える
 const ITEMS = [
   { label: 'りんご', emoji: '🍎' },
   { label: 'ばなな', emoji: '🍌' },
@@ -13,11 +14,17 @@ const ITEMS = [
   { label: 'うさぎ', emoji: '🐰' },
 ]
 
-export function generateStage14(): Question {
-  const picked = sampleMany(ITEMS, randInt(3, 4))
+export function generateStage14(level: number): Question {
+  const numCats = byLevel(level, [3, 3, 4])
+  const countPool = byLevel<number[]>(level, [
+    [1, 2, 3, 4, 5],
+    [2, 3, 4, 5, 6],
+    [3, 4, 5, 6, 7],
+  ])
+  const picked = sampleMany(ITEMS, numCats)
 
-  // かずが かぶらない ように 割りあてる
-  const counts = shuffle([1, 2, 3, 4, 5]).slice(0, picked.length)
+  // かずが かぶらない ように 割りあてる（さいだい・さいしょうが 1つに きまるように）
+  const counts = shuffle(countPool).slice(0, picked.length)
   const rows = picked.map((p, i) => ({ label: p.label, emoji: p.emoji, count: counts[i] }))
 
   const askMost = Math.random() < 0.6
@@ -31,8 +38,9 @@ export function generateStage14(): Question {
     visual: { kind: 'pictograph', rows },
     choices: shuffle(rows).map((r) => ({ label: `${r.emoji} ${r.label}`, value: r.label })),
     answer: target.label,
-    hint: askMost
-      ? 'えが いちばん ながく ならんで いるのは どれかな？'
-      : 'えが いちばん みじかいのは どれかな？',
+    hints: [
+      askMost ? 'えが いちばん ながく ならんで いるのは どれかな？' : 'えが いちばん みじかいのは どれかな？',
+      askMost ? 'よこに いちばん ながい すじの ものを えらぼう。' : 'よこに いちばん みじかい すじの ものを えらぼう。',
+    ],
   }
 }

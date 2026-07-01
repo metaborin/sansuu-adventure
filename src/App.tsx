@@ -8,6 +8,7 @@ import {
   createEmptyProgress,
   isStageUnlocked,
   loadProgress,
+  nextLevel,
   saveProgress,
   starsForCorrect,
 } from './utils/storage'
@@ -19,7 +20,7 @@ import {
 type Screen =
   | { name: 'home' }
   | { name: 'game'; stageId: number }
-  | { name: 'result'; stageId: number; correct: number }
+  | { name: 'result'; stageId: number; correct: number; leveledUp: boolean }
 
 export default function App() {
   const [progress, setProgress] = useState<Progress>(() => loadProgress())
@@ -39,9 +40,10 @@ export default function App() {
   }
 
   function finishStage(stageId: number, correct: number) {
-    const prev = progress.stages[stageId] ?? { cleared: false, bestCorrect: 0, stars: 0 }
+    const prev = progress.stages[stageId] ?? { cleared: false, bestCorrect: 0, stars: 0, level: 1 }
     const gainedStars = starsForCorrect(correct)
     const nowCleared = correct >= 4
+    const newLevel = nextLevel(prev.level, correct) // 直近の成績で難易度を自動調整
     const nextProgress: Progress = {
       ...progress,
       stages: {
@@ -50,11 +52,12 @@ export default function App() {
           cleared: prev.cleared || nowCleared,
           bestCorrect: Math.max(prev.bestCorrect, correct),
           stars: Math.max(prev.stars, gainedStars),
+          level: newLevel,
         },
       },
     }
     updateProgress(nextProgress)
-    setScreen({ name: 'result', stageId, correct })
+    setScreen({ name: 'result', stageId, correct, leveledUp: newLevel > prev.level })
   }
 
   function unlockAll() {
@@ -78,6 +81,7 @@ export default function App() {
       <Game
         key={`${screen.stageId}-${playKey}`}
         stage={stage}
+        level={progress.stages[screen.stageId]?.level ?? 1}
         onFinish={(correct) => finishStage(screen.stageId, correct)}
         onQuit={() => setScreen({ name: 'home' })}
       />
@@ -97,6 +101,8 @@ export default function App() {
         total={5}
         stars={sp?.stars ?? starsForCorrect(screen.correct)}
         cleared={cleared}
+        leveledUp={screen.leveledUp}
+        newLevel={sp?.level ?? 1}
         hasNext={cleared && nextExists}
         onNext={() => {
           if (isStageUnlocked(progress, screen.stageId + 1)) startStage(screen.stageId + 1)

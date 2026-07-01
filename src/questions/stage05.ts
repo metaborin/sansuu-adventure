@@ -1,13 +1,11 @@
 import type { Question, Visual } from '../types'
-import { numberChoices, randInt, uid } from '../utils/random'
+import { byLevel, numberChoices, randInt, uid } from '../utils/random'
 
 // ステージ5：かずの ならび（ぬけている かず・つぎ・まえ）
-export function generateStage5(): Question {
+// レベルで あつかう かずの おおきさを 変える（1〜20 → 1〜50 → 1〜100）
+export function generateStage5(level: number): Question {
   const variant = randInt(0, 2)
-
-  // たまに 1〜100 まで、ふだんは 1〜20
-  const bigRange = Math.random() < 0.3
-  const max = bigRange ? 99 : 20
+  const max = byLevel(level, [20, 50, 100])
 
   if (variant === 0) {
     // ならびの中の □ をこたえる： 11 12 □ 14 15
@@ -23,7 +21,10 @@ export function generateStage5(): Question {
       visual,
       choices: numberChoices(answer, { min: 0, max: max + 1 }),
       answer: String(answer),
-      hint: 'まえの かずから 1つずつ おおきく なっているよ。',
+      hints: [
+        'まえの かずから 1つずつ おおきく なっているよ。',
+        `${nums[blankPos - 1]}の つぎの かずを かんがえよう。`,
+      ],
     }
   }
 
@@ -37,7 +38,7 @@ export function generateStage5(): Question {
       visual: { kind: 'sequence', numbers: [n - 1 >= 1 ? n - 1 : n, n, null] },
       choices: numberChoices(answer, { min: 1, max: max + 1 }),
       answer: String(answer),
-      hint: 'つぎ、は 1つ おおきい かずだよ。',
+      hints: ['「つぎ」は 1つ おおきい かずだよ。', `${n}に 1を たすと いくつ？`],
     }
   }
 
@@ -50,6 +51,6 @@ export function generateStage5(): Question {
     visual: { kind: 'sequence', numbers: [null, n, n + 1 <= max ? n + 1 : n] },
     choices: numberChoices(answer, { min: 0, max }),
     answer: String(answer),
-    hint: 'まえ、は 1つ ちいさい かずだよ。',
+    hints: ['「まえ」は 1つ ちいさい かずだよ。', `${n}から 1を へらすと いくつ？`],
   }
 }

@@ -1,36 +1,38 @@
 import type { Question } from '../types'
-import { randInt, sample, uid } from '../utils/random'
+import { byLevel, randInt, sample, shuffle, uid } from '../utils/random'
 
 // ステージ12：ながさ・ひろさ・かさ（ちょくせつ くらべる）
+// レベルで あつかう しゅるいと、おおきさの さ（くらべやすさ）を 変える
 type Variant = 'length' | 'area' | 'volume'
 
-const CONFIG: Record<Variant, { more: string; less: string; ask: 'more' | 'less' }[]> = {
-  length: [
-    { more: 'ながい', less: 'みじかい', ask: 'more' },
-    { more: 'ながい', less: 'みじかい', ask: 'less' },
-  ],
-  area: [
-    { more: 'ひろい', less: 'せまい', ask: 'more' },
-    { more: 'ひろい', less: 'せまい', ask: 'less' },
-  ],
-  volume: [
-    { more: 'おおい', less: 'すくない', ask: 'more' },
-    { more: 'おおい', less: 'すくない', ask: 'less' },
-  ],
+const WORDS: Record<Variant, { more: string; less: string }> = {
+  length: { more: 'ながい', less: 'みじかい' },
+  area: { more: 'ひろい', less: 'せまい' },
+  volume: { more: 'おおい', less: 'すくない' },
 }
 
-export function generateStage12(): Question {
-  const variant = sample<Variant>(['length', 'area', 'volume'])
-  const cfg = sample(CONFIG[variant])
+export function generateStage12(level: number): Question {
+  const variantPool = byLevel<Variant[]>(level, [
+    ['length'],
+    ['length', 'area', 'volume'],
+    ['length', 'area', 'volume'],
+  ])
+  const variant = sample(variantPool)
 
-  // 左右で ちがう おおきさ（1〜3）
-  let left = randInt(1, 3)
-  let right = randInt(1, 3)
-  while (left === right) right = randInt(1, 3)
+  // レベル1は さが おおきくて わかりやすい（1と3）。レベル2・3は となりあう さ（さ1）で むずかしい。
+  const bigDiff = byLevel(level, [true, false, false])
+  let pair: number[]
+  if (bigDiff) {
+    pair = shuffle([1, 3])
+  } else {
+    const base = randInt(1, 2)
+    pair = shuffle([base, base + 1])
+  }
+  const [left, right] = pair
 
-  const word = cfg.ask === 'more' ? cfg.more : cfg.less
-  // ask=more なら 大きいほう、ask=less なら 小さいほう が こたえ
-  const answer = cfg.ask === 'more' ? (left > right ? 'left' : 'right') : left < right ? 'left' : 'right'
+  const askMore = Math.random() < 0.5
+  const word = askMore ? WORDS[variant].more : WORDS[variant].less
+  const answer = askMore ? (left > right ? 'left' : 'right') : left < right ? 'left' : 'right'
 
   return {
     id: uid(),
@@ -41,6 +43,9 @@ export function generateStage12(): Question {
       { label: 'みぎ ➡️', value: 'right' },
     ],
     answer,
-    hint: 'はしを そろえて くらべると わかりやすいよ。',
+    hints: [
+      'はしを そろえて くらべると わかりやすいよ。',
+      variant === 'volume' ? 'みずが たかいほうが「おおい」だよ。' : 'はみ出している ほうが おおきいよ。',
+    ],
   }
 }

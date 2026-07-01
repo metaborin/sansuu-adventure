@@ -20,7 +20,8 @@ import { generateStage14 } from './stage14'
 // 新しい ステージを ふやすときは、ここに 1 行 足すだけ。
 // ==========================================================================
 
-type Generator = () => Question
+// 各ステージの生成関数は、難易度レベル（1〜3）を受け取ります。
+type Generator = (level: number) => Question
 
 const GENERATORS: Record<number, Generator> = {
   1: generateStage1,
@@ -39,17 +40,18 @@ const GENERATORS: Record<number, Generator> = {
   14: generateStage14,
 }
 
-/** 1問だけ作る */
-export function generateOne(stageId: number): Question {
+/** 1問だけ作る（level: 難易度 1〜3） */
+export function generateOne(stageId: number, level = 1): Question {
   const gen = GENERATORS[stageId] ?? generateStage1
-  return gen()
+  return gen(level)
 }
 
 /**
  * ステージ用に n 問（デフォルト5問）作る。
+ * level（1〜3）で 出題の むずかしさを 変えます。
  * なるべく おなじ問題が つづかない ように、かんたんな重複チェックをします。
  */
-export function generateQuestions(stageId: number, n = 5): Question[] {
+export function generateQuestions(stageId: number, n = 5, level = 1): Question[] {
   const gen = GENERATORS[stageId] ?? generateStage1
   const out: Question[] = []
   const seen = new Set<string>()
@@ -57,14 +59,14 @@ export function generateQuestions(stageId: number, n = 5): Question[] {
 
   while (out.length < n && guard < n * 30) {
     guard += 1
-    const q = gen()
+    const q = gen(level)
     const key = `${q.prompt}|${q.answer}|${JSON.stringify(q.visual)}`
     if (seen.has(key)) continue
     seen.add(key)
     out.push(q)
   }
   // それでも足りなければ、重複チェックなしで うめる
-  while (out.length < n) out.push(gen())
+  while (out.length < n) out.push(gen(level))
 
   return out
 }
