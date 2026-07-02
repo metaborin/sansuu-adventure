@@ -25,8 +25,8 @@ export function generateStage7(level: number): Question {
     choices: numberChoices(answer, { min: 0, max: 10 }),
     answer: String(answer),
     hints: [
-      'ぜんぶの かずから、へった かずを とった のこりを かぞえよう。',
-      `${a}こ から ${b}こ ✕を つけて、のこった えを かぞえてみよう。`,
+      'えが でてきたよ！ ✕の ついていない のこりを かぞえてみよう。',
+      `${a}から「${a - 1}・${a - 2}…」と ${b}かい もどると のこりが わかるよ。`,
     ],
   }
 }

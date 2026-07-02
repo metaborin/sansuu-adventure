@@ -12,9 +12,15 @@ import { playTap } from '../utils/audio'
 type Props = {
   visual: Visual
   revealed: boolean
+  /**
+   * かぞえられる えを 出すか（たしざん・ひきざん用）。
+   * さいしょは 数字ラベルだけ → まちがえたら／こたえ合わせ後に えが 出る。
+   * こうすることで「えを 数えるだけで 答えが 出る」のを ふせぐ。
+   */
+  countAid?: boolean
 }
 
-export function VisualView({ visual, revealed }: Props) {
+export function VisualView({ visual, revealed, countAid = false }: Props) {
   switch (visual.kind) {
     case 'objects':
       return <Objects emoji={visual.emoji} count={visual.count} interactive={!revealed} />
@@ -35,9 +41,9 @@ export function VisualView({ visual, revealed }: Props) {
     case 'sequence':
       return <Sequence numbers={visual.numbers} />
     case 'addBlocks':
-      return <AddBlocks a={visual.a} b={visual.b} emoji={visual.emoji} />
+      return <AddBlocks a={visual.a} b={visual.b} emoji={visual.emoji} aid={countAid} />
     case 'subBlocks':
-      return <SubBlocks a={visual.a} b={visual.b} emoji={visual.emoji} />
+      return <SubBlocks a={visual.a} b={visual.b} emoji={visual.emoji} aid={countAid} />
     case 'makeTen':
       return <MakeTen filled={visual.filled} />
     case 'addCarry':
@@ -242,7 +248,24 @@ function Sequence({ numbers }: { numbers: (number | null)[] }) {
 }
 
 // --- ステージ6：たしざん（え）----------------------------------------------
-function AddBlocks({ a, b, emoji }: { a: number; b: number; emoji: string }) {
+// さいしょは「みほん1つ ＋ かず」だけ（えを 数えるだけで 答えが 出ないように）。
+// まちがえたら／こたえ合わせ後（aid=true）に、かぞえられる えが 出る。
+function AddBlocks({ a, b, emoji, aid }: { a: number; b: number; emoji: string; aid: boolean }) {
+  if (!aid) {
+    return (
+      <div className="blocks-row">
+        <div className="dish dish-num pop">
+          <span className="obj">{emoji}</span>
+          <span className="dish-count">{a}こ</span>
+        </div>
+        <div className="plus">＋</div>
+        <div className="dish dish-num pop" style={{ animationDelay: '120ms' }}>
+          <span className="obj">{emoji}</span>
+          <span className="dish-count">{b}こ</span>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="blocks-row">
       <div className="dish">
@@ -261,7 +284,25 @@ function AddBlocks({ a, b, emoji }: { a: number; b: number; emoji: string }) {
 }
 
 // --- ステージ7：ひきざん（え。とった ぶんは ✕）------------------------------
-function SubBlocks({ a, b, emoji }: { a: number; b: number; emoji: string }) {
+// さいしょは「ぜんぶの かず」と「へる かず（✕つき）」の ラベルだけ。
+// まちがえたら／こたえ合わせ後（aid=true）に、かぞえられる えが 出る。
+function SubBlocks({ a, b, emoji, aid }: { a: number; b: number; emoji: string; aid: boolean }) {
+  if (!aid) {
+    return (
+      <div className="blocks-row">
+        <div className="dish dish-num pop">
+          <span className="obj">{emoji}</span>
+          <span className="dish-count">{a}こ</span>
+        </div>
+        <div className="plus">−</div>
+        <div className="dish dish-num dish-gone pop" style={{ animationDelay: '120ms' }}>
+          <span className="gone-mark">✕</span>
+          <span className="obj">{emoji}</span>
+          <span className="dish-count">{b}こ</span>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="dish wide">
       {Array.from({ length: a }).map((_, i) => (

@@ -19,7 +19,7 @@ export function generateStage6(level: number): Question {
     choices: numberChoices(answer, { min: 0, max: 10 }),
     answer: String(answer),
     hints: [
-      'ぜんぶの えを、いっしょに かぞえてみよう！',
+      'えが でてきたよ！ ぜんぶの えを いっしょに かぞえてみよう。',
       `さいしょの ${a}から つづけて「${a + 1}・${a + 2}…」と ${b}こ すすもう。`,
     ],
   }

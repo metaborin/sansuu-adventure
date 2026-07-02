@@ -188,8 +188,14 @@ export function Game({
         </div>
 
         <div className="visual-area">
-          {/* 問題ごとに key を かえて、とうじょうアニメを まいかい さいせい */}
-          <VisualView key={`${phase}-${q.id}`} visual={q.visual} revealed={solved} />
+          {/* 問題ごとに key を かえて、とうじょうアニメを まいかい さいせい。
+              countAid: まちがえたら／こたえ合わせ後に かぞえられる えを 出す */}
+          <VisualView
+            key={`${phase}-${q.id}`}
+            visual={q.visual}
+            revealed={solved}
+            countAid={attempts > 0 || solved}
+          />
         </div>
 
         {solved && (

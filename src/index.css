@@ -968,6 +968,46 @@ body {
 .dish.wide {
   max-width: 320px;
 }
+/* 数字ラベルだけの おさら（えを 数えるだけで 答えが 出ないように、
+   さいしょは みほん1つ ＋ かず で 見せる） */
+.dish-num {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 22px;
+  min-width: 96px;
+  position: relative;
+}
+.dish-count {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* ひきざんの「へる ぶん」の おさら */
+.dish-gone {
+  border-color: #ff8787;
+  background: #fff5f5;
+}
+.dish-gone .obj,
+.dish-gone .dish-count {
+  opacity: 0.75;
+}
+.gone-mark {
+  position: absolute;
+  top: -12px;
+  right: -10px;
+  width: 30px;
+  height: 30px;
+  background: #ff6b6b;
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1rem;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+}
 
 /* かずの ならび */
 .sequence {
