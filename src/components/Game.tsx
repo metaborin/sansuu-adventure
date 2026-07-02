@@ -113,6 +113,13 @@ export function Game({
     onFinish(correctCount)
   }
 
+  // とちゅうで ホームへ もどるときは かくにん（うっかりタップで 進行が きえないように）
+  function quit() {
+    const inProgress = index > 0 || solved || wrong.length > 0 || correctCount > 0 || phase === 'retry'
+    if (inProgress && !window.confirm('とちゅうで やめて ホームに もどりますか？')) return
+    onQuit()
+  }
+
   // 段階ヒント：まちがえた かいすうに あわせて だんだん くわしく
   const showHint = attempts > 0 && !solved
   const currentHint = showHint ? q.hints[Math.min(attempts - 1, q.hints.length - 1)] : ''
@@ -129,7 +136,7 @@ export function Game({
   return (
     <div className="game" style={{ ['--accent' as string]: stage.color }}>
       <div className="game-top">
-        <button className="btn btn-round" onClick={onQuit} aria-label="ホームへ もどる">
+        <button className="btn btn-round" onClick={quit} aria-label="ホームへ もどる">
           🏠
         </button>
         <div className="game-title">

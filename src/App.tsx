@@ -29,7 +29,8 @@ import {
 } from './utils/audio'
 
 // ==========================================================================
-// アプリ本体：がめんの きりかえ（ホーム / もんだい / けっか / ふくしゅう）と 進捗の 管理
+// アプリ本体：がめんの きりかえ と 進捗・せっていの 管理
+// （ホーム / もんだい / けっか / ふくしゅう / きょうのチャレンジ / バッジずかん / せんせいページ）
 // ==========================================================================
 
 // ホームの「ふくしゅう」用の 仮想ステージ（一覧には 出ない）
@@ -362,7 +363,7 @@ export default function App() {
         stage={stage}
         correct={screen.correct}
         total={screen.total}
-        stars={sp?.stars ?? starsForCorrect(screen.correct, screen.total)}
+        stars={starsForCorrect(screen.correct, screen.total)} // 今回の成績のスター（保存は最高値）
         cleared={cleared}
         leveledUp={screen.leveledUp}
         newLevel={sp?.level ?? 1}

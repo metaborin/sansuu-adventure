@@ -72,7 +72,8 @@ export function Result({
       window.setTimeout(() => speakAuto('もういちど チャレンジ！'), 300)
     }
     if (newBadges.length > 0) {
-      window.setTimeout(() => speakAuto('バッジ ゲット！'), 1600)
+      // タイトルの よみあげ（0.7びょう〜）と かぶらないよう、すこし あとに
+      window.setTimeout(() => speakAuto('バッジ ゲット！'), 2400)
     }
     // マウント時に 1かいだけ
     // eslint-disable-next-line react-hooks/exhaustive-deps

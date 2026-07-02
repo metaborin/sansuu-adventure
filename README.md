@@ -147,23 +147,31 @@ git push
 │   ├── sw.js                 … Service Worker（オフライン用キャッシュ）
 │   └── icon-*.png / apple-touch-icon.png … アプリアイコン
 └── src/
-    ├── main.tsx              … エントリーポイント
-    ├── App.tsx               … 画面切り替え（ホーム/問題/結果）＋進捗管理
+    ├── main.tsx              … エントリーポイント（本番のみ Service Worker 登録）
+    ├── App.tsx               … 画面切り替え（ホーム/問題/結果/ふくしゅう/チャレンジ/ずかん/せんせい）＋進捗管理
     ├── index.css             … こども向けデザイン（明るい・丸い・大きい）
-    ├── types.ts              … 型定義（Question / Visual / Progress など）
+    ├── types.ts              … 型定義（Question / Visual / Progress / AppSettings など）
     ├── data/
-    │   └── stages.ts         … ステージ定義（配列データ）
+    │   ├── stages.ts         … ステージ定義（配列データ）
+    │   ├── badges.ts         … バッジ定義（11種）と獲得判定
+    │   └── badges.test.ts    … バッジ判定のテスト
     ├── utils/
     │   ├── random.ts         … 乱数・シャッフル・選択肢生成
-    │   └── storage.ts        … localStorage 保存・解放判定・スター計算
+    │   ├── storage.ts        … 進捗/設定の保存・解放判定・スター計算・ストリーク記録
+    │   ├── audio.ts          … BGM・効果音（Web Audio合成）・読み上げ（Web Speech）
+    │   ├── daily.test.ts     … きょうのチャレンジのテスト
+    │   └── scoring.test.ts   … スコア計算（5問/10問）のテスト
     ├── questions/
-    │   ├── index.ts          … 問題生成のディスパッチャ（5問生成）
+    │   ├── index.ts          … 問題生成のディスパッチャ（ステージ/ふくしゅう/チャレンジ）
+    │   ├── generators.test.ts … 全ステージ×全レベルの生成テスト
     │   └── stage01.ts 〜 stage14.ts … 各ステージの問題生成ロジック
     └── components/
-        ├── Home.tsx          … ホーム＋ステージ選択
-        ├── Game.tsx          … 問題画面（5問の進行・ヒント・採点）
-        ├── Result.tsx        … クリア画面（スター・つぎへ・もういちど）
-        └── Visual.tsx        … イラスト/ブロック/とけい等の描画
+        ├── Home.tsx          … ホーム＋ステージ選択（チャレンジ/ふくしゅうカード）
+        ├── Game.tsx          … 問題画面（進行・段階ヒント・ふくしゅうタイム・採点）
+        ├── Result.tsx        … けっか画面（スター・レベルアップ・バッジ・ストリーク）
+        ├── Visual.tsx        … イラスト/ブロック/とけい等の描画（タップで数える）
+        ├── Badges.tsx        … バッジずかん
+        └── Teacher.tsx       … せんせい・ほごしゃページ（成績一覧・設定）
 ```
 
 ---

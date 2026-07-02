@@ -19,6 +19,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* タップ遅延・ダブルタップズームを ふせぐ（連打する ゲームなので 体感が よくなる） */
+button {
+  touch-action: manipulation;
+}
+
 html,
 body {
   margin: 0;
