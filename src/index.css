@@ -1118,6 +1118,112 @@ body {
 }
 
 /* ==========================================================================
+   せんせい・ほごしゃ ページ
+   ========================================================================== */
+.teacher-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.teacher-chip {
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+}
+.teacher-section {
+  margin-bottom: 16px;
+}
+.teacher-heading {
+  font-size: 1.15rem;
+  color: var(--ink);
+  margin: 0 0 10px;
+  text-align: center;
+}
+.teacher-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.teacher-table th,
+.teacher-table td {
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 2px solid #f1f3f5;
+  white-space: nowrap;
+}
+.teacher-table th {
+  color: #868e96;
+  font-size: 0.78rem;
+}
+.teacher-table .teacher-stage {
+  text-align: left;
+  font-weight: 700;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.teacher-note {
+  font-size: 0.8rem;
+  color: #868e96;
+  line-height: 1.5;
+  margin: 8px 2px 0;
+}
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 14px 0 4px;
+  flex-wrap: wrap;
+}
+.setting-label {
+  font-weight: 800;
+}
+/* きりかえボタン（セグメント） */
+.seg {
+  display: flex;
+  gap: 6px;
+}
+.seg button {
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 3px solid #ced4da;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+.seg button:active {
+  transform: translateY(2px);
+}
+.seg button.on {
+  border-color: var(--accent, #4c6ef5);
+  background: #edf2ff;
+  color: #364fc7;
+}
+.teacher-danger {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 2px dashed #ffc078;
+}
+.teacher-danger .btn {
+  font-size: 0.95rem;
+  padding: 10px 16px;
+}
+
+/* ==========================================================================
    けっか画面
    ========================================================================== */
 .result {
@@ -1270,6 +1376,20 @@ body {
   }
   .stage-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  /* せいせき一覧を スマホ幅に おさめる */
+  .teacher-section {
+    padding: 14px 8px;
+  }
+  .teacher-table {
+    font-size: 0.72rem;
+  }
+  .teacher-table th,
+  .teacher-table td {
+    padding: 5px 2px;
+  }
+  .teacher-table .teacher-stage {
+    max-width: 108px;
   }
 }
 

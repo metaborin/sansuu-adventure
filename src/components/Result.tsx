@@ -144,13 +144,21 @@ export function Result({
         ))}
 
         {isDaily ? (
-          !cleared && <p className="result-msg">4もん せいかいで クリアだよ。なんかいでも チャレンジできるよ！</p>
+          !cleared && (
+            <p className="result-msg">
+              {Math.ceil(total * 0.8)}もん せいかいで クリアだよ。なんかいでも チャレンジできるよ！
+            </p>
+          )
         ) : isReview ? (
           <p className="result-msg">
             {cleared ? 'にがてが へったよ！ このちょうし！' : 'まちがえても だいじょうぶ。すこしずつ おぼえよう！'}
           </p>
         ) : (
-          !cleared && <p className="result-msg">4もん せいかいで クリアだよ。もういちど チャレンジ！</p>
+          !cleared && (
+            <p className="result-msg">
+              {Math.ceil(total * 0.8)}もん せいかいで クリアだよ。もういちど チャレンジ！
+            </p>
+          )
         )}
 
         <div className="result-btns">

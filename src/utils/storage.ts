@@ -1,4 +1,4 @@
-import type { DailyProgress, Progress, StageProgress } from '../types'
+import type { AppSettings, DailyProgress, Progress, StageProgress } from '../types'
 import { STAGES } from '../data/stages'
 
 // ==========================================================================
@@ -142,21 +142,62 @@ export function clearedCount(progress: Progress): number {
   return Object.values(progress.stages).filter((s) => s.cleared).length
 }
 
-/** 正解数からスターを計算（5問中） */
-export function starsForCorrect(correct: number): number {
-  if (correct >= 5) return 3
-  if (correct >= 4) return 2
+/**
+ * クリアに ひつような 正解数（8わり）。
+ * 5問 → 4問、10問 → 8問
+ */
+export function clearThreshold(total: number): number {
+  return Math.ceil(total * 0.8)
+}
+
+/** 正解数からスターを計算（全問=3、8わり以上=2、それ以外=0） */
+export function starsForCorrect(correct: number, total = 5): number {
+  if (correct >= total) return 3
+  if (correct >= clearThreshold(total)) return 2
   return 0
 }
 
 /**
- * 直近の成績（5問中の正解数）から、つぎの難易度レベルを決める。
- * ・全問（5問）正解 → レベルアップ
- * ・2問いか       → レベルダウン
- * ・それ以外       → そのまま
+ * 直近の成績から、つぎの難易度レベルを決める。
+ * ・全問正解        → レベルアップ
+ * ・4わり以下の正解 → レベルダウン（5問なら2問、10問なら4問）
+ * ・それ以外        → そのまま
  */
-export function nextLevel(current: number, correct: number): number {
-  if (correct >= 5) return Math.min(current + 1, MAX_LEVEL)
-  if (correct <= 2) return Math.max(current - 1, 1)
+export function nextLevel(current: number, correct: number, total = 5): number {
+  if (correct >= total) return Math.min(current + 1, MAX_LEVEL)
+  if (correct <= Math.floor(total * 0.4)) return Math.max(current - 1, 1)
   return current
+}
+
+// ==========================================================================
+// せんせい・ほごしゃ向けの せってい（進捗とは べつの キーに 保存）
+// リセットしても せっていは 残ります。
+// ==========================================================================
+
+const SETTINGS_KEY = 'sansuu-adventure-1nensei:settings'
+
+export function defaultSettings(): AppSettings {
+  return { questionsPerStage: 5, adaptiveDifficulty: true }
+}
+
+export function loadSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY)
+    if (!raw) return defaultSettings()
+    const parsed = JSON.parse(raw) as Partial<AppSettings>
+    return {
+      questionsPerStage: parsed.questionsPerStage === 10 ? 10 : 5,
+      adaptiveDifficulty: parsed.adaptiveDifficulty !== false,
+    }
+  } catch {
+    return defaultSettings()
+  }
+}
+
+export function saveSettings(settings: AppSettings): void {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  } catch {
+    // 保存できなくてもゲームは続けられる
+  }
 }

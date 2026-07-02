@@ -12,8 +12,6 @@ import { playCorrect, playTap, playWrong, speak, speakAuto, stopSpeak } from '..
 //   もういちど チャレンジしてから けっかへ（まちがいっぱなしで 終わらせない）
 // ==========================================================================
 
-const QUESTIONS_PER_STAGE = 5
-
 type Phase = 'main' | 'retry'
 
 type Props = {
@@ -21,6 +19,8 @@ type Props = {
   /** 難易度レベル（1〜3）。出題の むずかしさが 変わる */
   level: number
   soundOn: boolean
+  /** 1回の 問題数（せんせいの せっていで 5 or 10。デフォルト 5） */
+  questionCount?: number
   /** ホームの「ふくしゅう」用に、問題を 外から わたす（わたすと 自動生成しない） */
   customQuestions?: Question[]
   /** ホームからの ふくしゅうセッションか（このときは ふくしゅうタイムを 重ねない） */
@@ -34,16 +34,17 @@ export function Game({
   stage,
   level,
   soundOn,
+  questionCount = 5,
   customQuestions,
   isReviewSession = false,
   onToggleSound,
   onFinish,
   onQuit,
 }: Props) {
-  // 5問を さいしょに 作って おく（このコンポーネントが 生きている あいだは 変わらない）
+  // 問題を さいしょに 作って おく（このコンポーネントが 生きている あいだは 変わらない）
   const mainQuestions = useMemo(
-    () => customQuestions ?? generateQuestions(stage.id, QUESTIONS_PER_STAGE, level),
-    [stage.id, level, customQuestions]
+    () => customQuestions ?? generateQuestions(stage.id, questionCount, level),
+    [stage.id, level, customQuestions, questionCount]
   )
 
   // フェーズ： main = ほんばん ／ retry = ふくしゅうタイム（まちがえた 問題に もういちど）

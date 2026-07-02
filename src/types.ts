@@ -113,6 +113,16 @@ export interface StageProgress {
   misses: number
 }
 
+/**
+ * せんせい・ほごしゃ向けの せってい（進捗とは べつに 保存。リセットしても 残る）
+ */
+export interface AppSettings {
+  /** ステージ1回の 問題数（5 または 10） */
+  questionsPerStage: 5 | 10
+  /** 難易度の 自動調整（オフに すると レベルが 固定される） */
+  adaptiveDifficulty: boolean
+}
+
 /** きょうのチャレンジの きろく */
 export interface DailyProgress {
   /** さいごに クリアした日（YYYY-MM-DD・ローカル時刻）。まだなら null */

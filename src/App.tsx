@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
-import type { Progress, Question, StageMeta } from './types'
+import type { AppSettings, Progress, Question, StageMeta } from './types'
 import { getStage, STAGES } from './data/stages'
 import { Home } from './components/Home'
 import { Game } from './components/Game'
 import { Result } from './components/Result'
 import { BadgeBook } from './components/Badges'
+import { Teacher } from './components/Teacher'
 import { evaluateBadges, getBadge, type BadgeMeta } from './data/badges'
 import { generateDailyQuestions, generateReviewQuestions } from './questions'
 import {
+  clearThreshold,
   createEmptyProgress,
   isStageUnlocked,
   loadProgress,
+  loadSettings,
   nextLevel,
   recordDailyClear,
   saveProgress,
+  saveSettings,
   starsForCorrect,
 } from './utils/storage'
 import {
@@ -51,12 +55,13 @@ const DAILY_STAGE: StageMeta = {
 type Screen =
   | { name: 'home' }
   | { name: 'game'; stageId: number }
-  | { name: 'result'; stageId: number; correct: number; leveledUp: boolean; newBadges: string[] }
+  | { name: 'result'; stageId: number; correct: number; total: number; leveledUp: boolean; newBadges: string[] }
   | { name: 'review'; questions: Question[]; stageIds: number[] }
   | { name: 'review-result'; correct: number; newBadges: string[] }
   | { name: 'daily'; questions: Question[] }
   | { name: 'daily-result'; correct: number; newBadges: string[]; streak: number }
   | { name: 'badges' }
+  | { name: 'teacher' }
 
 /** バッジIDの ならびを 表示用の 情報に かえる */
 function badgeMetas(ids: string[]): BadgeMeta[] {
@@ -71,6 +76,25 @@ export default function App() {
   // おと（BGM＋こうかおん：デフォルトオン）／ よみあげ（デフォルトオフ）
   const [soundOn, setSoundOn] = useState<boolean>(() => loadSfxEnabled())
   const [speechOn, setSpeechOn] = useState<boolean>(() => loadSpeechEnabled())
+  // せんせい・ほごしゃ向けの せってい（問題数・難易度固定）
+  const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
+
+  function changeSettings(next: AppSettings) {
+    setSettings(next)
+    saveSettings(next)
+  }
+
+  // ぜんステージの レベルを そろえる（せんせいページ用）
+  function setAllLevels(level: number) {
+    const ok = window.confirm(`すべての ステージの レベルを ${level} に しますか？`)
+    if (!ok) return
+    const stages = { ...progress.stages }
+    for (const s of STAGES) {
+      const sp = stages[s.id]
+      if (sp) stages[s.id] = { ...sp, level }
+    }
+    updateProgress({ ...progress, stages })
+  }
 
   function toggleSound() {
     const next = !soundOn
@@ -110,9 +134,11 @@ export default function App() {
       level: 1,
       misses: 0,
     }
-    const gainedStars = starsForCorrect(correct)
-    const nowCleared = correct >= 4
-    const newLevel = nextLevel(prev.level, correct) // 直近の成績で難易度を自動調整
+    const total = settings.questionsPerStage
+    const gainedStars = starsForCorrect(correct, total)
+    const nowCleared = correct >= clearThreshold(total)
+    // 難易度の自動調整（せっていで オフなら レベル固定）
+    const newLevel = settings.adaptiveDifficulty ? nextLevel(prev.level, correct, total) : prev.level
     const nextProgress: Progress = {
       ...progress,
       stages: {
@@ -123,7 +149,7 @@ export default function App() {
           stars: Math.max(prev.stars, gainedStars),
           level: newLevel,
           // 1回めで まちがえた数を きろく → ホームの「ふくしゅう」の 出題もとに
-          misses: 5 - correct,
+          misses: total - correct,
         },
       },
     }
@@ -134,6 +160,7 @@ export default function App() {
       name: 'result',
       stageId,
       correct,
+      total,
       leveledUp: newLevel > prev.level,
       newBadges: newBadges.map((b) => b.id),
     })
@@ -221,6 +248,7 @@ export default function App() {
         key={`${screen.stageId}-${playKey}`}
         stage={stage}
         level={progress.stages[screen.stageId]?.level ?? 1}
+        questionCount={settings.questionsPerStage}
         soundOn={soundOn}
         onToggleSound={toggleSound}
         onFinish={(correct) => finishStage(screen.stageId, correct)}
@@ -247,6 +275,20 @@ export default function App() {
 
   if (screen.name === 'badges') {
     return <BadgeBook progress={progress} onBack={() => setScreen({ name: 'home' })} />
+  }
+
+  if (screen.name === 'teacher') {
+    return (
+      <Teacher
+        progress={progress}
+        settings={settings}
+        onChangeSettings={changeSettings}
+        onSetAllLevels={setAllLevels}
+        onUnlockAll={unlockAll}
+        onReset={resetProgress}
+        onBack={() => setScreen({ name: 'home' })}
+      />
+    )
   }
 
   if (screen.name === 'daily') {
@@ -313,14 +355,14 @@ export default function App() {
     const stage = getStage(screen.stageId)
     if (!stage) return <FallbackHome />
     const sp = progress.stages[screen.stageId]
-    const cleared = screen.correct >= 4
+    const cleared = screen.correct >= clearThreshold(screen.total)
     const nextExists = STAGES.some((s) => s.id === screen.stageId + 1)
     return (
       <Result
         stage={stage}
         correct={screen.correct}
-        total={5}
-        stars={sp?.stars ?? starsForCorrect(screen.correct)}
+        total={screen.total}
+        stars={sp?.stars ?? starsForCorrect(screen.correct, screen.total)}
         cleared={cleared}
         leveledUp={screen.leveledUp}
         newLevel={sp?.level ?? 1}
@@ -347,8 +389,7 @@ export default function App() {
       onStartReview={startReview}
       onStartDaily={startDaily}
       onOpenBadges={() => setScreen({ name: 'badges' })}
-      onUnlockAll={unlockAll}
-      onReset={resetProgress}
+      onOpenTeacher={() => setScreen({ name: 'teacher' })}
     />
   )
 
@@ -362,10 +403,9 @@ export default function App() {
         onToggleSpeech={toggleSpeech}
         onStart={startStage}
         onStartReview={startReview}
-      onStartDaily={startDaily}
+        onStartDaily={startDaily}
         onOpenBadges={() => setScreen({ name: 'badges' })}
-        onUnlockAll={unlockAll}
-        onReset={resetProgress}
+        onOpenTeacher={() => setScreen({ name: 'teacher' })}
       />
     )
   }

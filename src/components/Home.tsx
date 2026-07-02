@@ -18,8 +18,7 @@ type Props = {
   onStartReview: () => void
   onStartDaily: () => void
   onOpenBadges: () => void
-  onUnlockAll: () => void
-  onReset: () => void
+  onOpenTeacher: () => void
 }
 
 export function Home({
@@ -32,8 +31,7 @@ export function Home({
   onStartReview,
   onStartDaily,
   onOpenBadges,
-  onUnlockAll,
-  onReset,
+  onOpenTeacher,
 }: Props) {
   const stars = totalStars(progress)
   const cleared = clearedCount(progress)
@@ -154,11 +152,8 @@ export function Home({
           ※ よみあげは はじめ オフです。もんだい画面の 🔊 ボタンで いつでも 読み上げできます。
         </p>
         <div className="grown-up-btns">
-          <button className="btn btn-ghost" onClick={onUnlockAll}>
-            🔓 すべて かいほう
-          </button>
-          <button className="btn btn-ghost" onClick={onReset}>
-            🔄 しんちょくを リセット
+          <button className="btn btn-ghost" onClick={onOpenTeacher}>
+            📋 せいせき・せってい（かいほう・リセットも こちら）
           </button>
         </div>
       </div>
