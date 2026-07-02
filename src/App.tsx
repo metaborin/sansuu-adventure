@@ -4,6 +4,8 @@ import { getStage, STAGES } from './data/stages'
 import { Home } from './components/Home'
 import { Game } from './components/Game'
 import { Result } from './components/Result'
+import { BadgeBook } from './components/Badges'
+import { evaluateBadges, getBadge, type BadgeMeta } from './data/badges'
 import { generateReviewQuestions } from './questions'
 import {
   createEmptyProgress,
@@ -38,9 +40,15 @@ const REVIEW_STAGE: StageMeta = {
 type Screen =
   | { name: 'home' }
   | { name: 'game'; stageId: number }
-  | { name: 'result'; stageId: number; correct: number; leveledUp: boolean }
+  | { name: 'result'; stageId: number; correct: number; leveledUp: boolean; newBadges: string[] }
   | { name: 'review'; questions: Question[]; stageIds: number[] }
-  | { name: 'review-result'; correct: number }
+  | { name: 'review-result'; correct: number; newBadges: string[] }
+  | { name: 'badges' }
+
+/** バッジIDの ならびを 表示用の 情報に かえる */
+function badgeMetas(ids: string[]): BadgeMeta[] {
+  return ids.map((id) => getBadge(id)).filter((b): b is BadgeMeta => Boolean(b))
+}
 
 export default function App() {
   const [progress, setProgress] = useState<Progress>(() => loadProgress())
@@ -106,8 +114,16 @@ export default function App() {
         },
       },
     }
-    updateProgress(nextProgress)
-    setScreen({ name: 'result', stageId, correct, leveledUp: newLevel > prev.level })
+    // あたらしい バッジが とれたか しらべて 保存
+    const { progress: withBadges, newBadges } = evaluateBadges(nextProgress)
+    updateProgress(withBadges)
+    setScreen({
+      name: 'result',
+      stageId,
+      correct,
+      leveledUp: newLevel > prev.level,
+      newBadges: newBadges.map((b) => b.id),
+    })
   }
 
   // --- ふくしゅう（ホームから）--------------------------------------------
@@ -128,16 +144,19 @@ export default function App() {
   }
 
   function finishReview(correct: number, stageIds: number[]) {
-    // 4問以上 できたら、出題した ステージの「にがて」を 消す
+    // 4問以上 できたら、出題した ステージの「にがて」を 消して、クリア回数を きろく
+    let next: Progress = progress
     if (correct >= 4) {
       const stages = { ...progress.stages }
       for (const id of stageIds) {
         const sp = stages[id]
         if (sp) stages[id] = { ...sp, misses: 0 }
       }
-      updateProgress({ ...progress, stages })
+      next = { ...progress, stages, reviewClears: progress.reviewClears + 1 }
     }
-    setScreen({ name: 'review-result', correct })
+    const { progress: withBadges, newBadges } = evaluateBadges(next)
+    updateProgress(withBadges)
+    setScreen({ name: 'review-result', correct, newBadges: newBadges.map((b) => b.id) })
   }
 
   function unlockAll() {
@@ -186,6 +205,10 @@ export default function App() {
     )
   }
 
+  if (screen.name === 'badges') {
+    return <BadgeBook progress={progress} onBack={() => setScreen({ name: 'home' })} />
+  }
+
   if (screen.name === 'review-result') {
     const stillHasMisses = STAGES.some((s) => (progress.stages[s.id]?.misses ?? 0) > 0)
     return (
@@ -199,6 +222,7 @@ export default function App() {
         newLevel={1}
         hasNext={false}
         isReview
+        newBadges={badgeMetas(screen.newBadges)}
         onNext={() => setScreen({ name: 'home' })}
         onReplay={() => {
           if (stillHasMisses) startReview()
@@ -225,6 +249,7 @@ export default function App() {
         leveledUp={screen.leveledUp}
         newLevel={sp?.level ?? 1}
         hasNext={cleared && nextExists}
+        newBadges={badgeMetas(screen.newBadges)}
         onNext={() => {
           if (isStageUnlocked(progress, screen.stageId + 1)) startStage(screen.stageId + 1)
           else setScreen({ name: 'home' })
@@ -244,6 +269,7 @@ export default function App() {
       onToggleSpeech={toggleSpeech}
       onStart={startStage}
       onStartReview={startReview}
+      onOpenBadges={() => setScreen({ name: 'badges' })}
       onUnlockAll={unlockAll}
       onReset={resetProgress}
     />
@@ -259,6 +285,7 @@ export default function App() {
         onToggleSpeech={toggleSpeech}
         onStart={startStage}
         onStartReview={startReview}
+        onOpenBadges={() => setScreen({ name: 'badges' })}
         onUnlockAll={unlockAll}
         onReset={resetProgress}
       />

@@ -28,7 +28,7 @@ export function createEmptyProgress(): Progress {
   for (const s of STAGES) {
     stages[s.id] = emptyStage()
   }
-  return { version: PROGRESS_VERSION, stages, unlockedAll: false }
+  return { version: PROGRESS_VERSION, stages, unlockedAll: false, badges: [], reviewClears: 0 }
 }
 
 /** 進捗をよみこむ（なければ・こわれていれば 新規作成） */
@@ -40,12 +40,18 @@ export function loadProgress(): Progress {
     if (parsed.version !== PROGRESS_VERSION || !parsed.stages) {
       return createEmptyProgress()
     }
-    // あとから増えたステージ・新項目（level など）にも対応（無い分をうめる）
+    // あとから増えたステージ・新項目（level・badges など）にも対応（無い分をうめる）
     const stages: Record<number, StageProgress> = {}
     for (const s of STAGES) {
       stages[s.id] = normalizeStage(parsed.stages[s.id])
     }
-    return { version: PROGRESS_VERSION, stages, unlockedAll: Boolean(parsed.unlockedAll) }
+    return {
+      version: PROGRESS_VERSION,
+      stages,
+      unlockedAll: Boolean(parsed.unlockedAll),
+      badges: Array.isArray(parsed.badges) ? parsed.badges.filter((b) => typeof b === 'string') : [],
+      reviewClears: typeof parsed.reviewClears === 'number' ? parsed.reviewClears : 0,
+    }
   } catch {
     return createEmptyProgress()
   }

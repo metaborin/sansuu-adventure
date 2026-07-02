@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { StageMeta } from '../types'
+import type { BadgeMeta } from '../data/badges'
 import { playClear, playWrong, speakAuto } from '../utils/audio'
 
 // ==========================================================================
@@ -21,6 +22,8 @@ type Props = {
   hasNext: boolean
   /** ホームからの「ふくしゅう」セッションの けっかか */
   isReview?: boolean
+  /** このプレイで あたらしく かくとくした バッジ */
+  newBadges?: BadgeMeta[]
   onNext: () => void
   onReplay: () => void
   onHome: () => void
@@ -36,6 +39,7 @@ export function Result({
   newLevel,
   hasNext,
   isReview = false,
+  newBadges = [],
   onNext,
   onReplay,
   onHome,
@@ -52,6 +56,9 @@ export function Result({
     } else {
       playWrong()
       window.setTimeout(() => speakAuto('もういちど チャレンジ！'), 300)
+    }
+    if (newBadges.length > 0) {
+      window.setTimeout(() => speakAuto('バッジ ゲット！'), 1600)
     }
     // マウント時に 1かいだけ
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,6 +107,15 @@ export function Result({
             ⬆️ レベルアップ！<span>つぎは レベル {newLevel}。もうすこし むずかしくなるよ！</span>
           </div>
         )}
+
+        {newBadges.map((b, i) => (
+          <div key={b.id} className="badge-get pop" style={{ animationDelay: `${500 + i * 300}ms` }}>
+            🎉 バッジ ゲット！
+            <span className="badge-get-item">
+              {b.emoji} {b.name}
+            </span>
+          </div>
+        ))}
 
         {isReview ? (
           <p className="result-msg">

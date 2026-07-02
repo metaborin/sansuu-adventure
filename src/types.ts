@@ -121,4 +121,11 @@ export interface Progress {
   stages: Record<number, StageProgress>
   /** せんせい・ほごしゃ用「すべて解放」がおされたか */
   unlockedAll: boolean
+  /**
+   * かくとくした バッジの ID（かくとく順）。
+   * いちど とった バッジは 消えない（レベルが 下がっても そのまま）。
+   */
+  badges: string[]
+  /** ふくしゅうを クリア（4もん以上 せいかい）した かいすう（バッジ判定用） */
+  reviewClears: number
 }

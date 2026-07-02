@@ -1,5 +1,6 @@
 import type { Progress } from '../types'
 import { STAGES } from '../data/stages'
+import { BADGES } from '../data/badges'
 import { clearedCount, isStageUnlocked, totalStars } from '../utils/storage'
 
 // ==========================================================================
@@ -15,6 +16,7 @@ type Props = {
   onToggleSpeech: () => void
   onStart: (stageId: number) => void
   onStartReview: () => void
+  onOpenBadges: () => void
   onUnlockAll: () => void
   onReset: () => void
 }
@@ -27,6 +29,7 @@ export function Home({
   onToggleSpeech,
   onStart,
   onStartReview,
+  onOpenBadges,
   onUnlockAll,
   onReset,
 }: Props) {
@@ -67,6 +70,12 @@ export function Home({
           <span className="summary-num">🏁 {cleared} / {STAGES.length}</span>
           <span className="summary-cap">クリア</span>
         </div>
+        <button className="summary-item summary-btn" onClick={onOpenBadges} aria-label="バッジずかんを ひらく">
+          <span className="summary-num">
+            🏅 {progress.badges.length}/{BADGES.length}
+          </span>
+          <span className="summary-cap">バッジずかん ▶</span>
+        </button>
       </div>
 
       <button className="btn btn-big btn-start" onClick={() => onStart(nextStage.id)}>
