@@ -3,7 +3,8 @@ import type { Visual } from '../types'
 // ==========================================================================
 // 問題の「見た目（イラスト・ブロックなど）」を描くコンポーネント
 // visual.kind に あわせて えがきわけます。
-// revealed = true のとき（こたえ合わせ後）は、ヒントの ハイライトを 出します。
+// revealed = true のとき（こたえ合わせ後）は、こたえの ハイライトや
+// かずの ひょうじを 出します。
 // ==========================================================================
 
 type Props = {
@@ -16,18 +17,19 @@ export function VisualView({ visual, revealed }: Props) {
     case 'objects':
       return <Objects emoji={visual.emoji} count={visual.count} />
     case 'compare':
-      return <Compare left={visual.left} right={visual.right} />
+      return <Compare left={visual.left} right={visual.right} revealed={revealed} />
     case 'ordinalRow':
       return (
         <OrdinalRow
           items={visual.items}
-          from={visual.from}
           targetIndex={visual.targetIndex}
+          ends={visual.ends}
+          countFrom={visual.countFrom}
           revealed={revealed}
         />
       )
     case 'tenAndOnes':
-      return <TenAndOnes ones={visual.ones} />
+      return <TenAndOnes ones={visual.ones} hideOnes={visual.hideOnes} />
     case 'sequence':
       return <Sequence numbers={visual.numbers} />
     case 'addBlocks':
@@ -43,11 +45,19 @@ export function VisualView({ visual, revealed }: Props) {
     case 'shapeObject':
       return <div className="shape-object pop">{visual.emoji}</div>
     case 'measure':
-      return <Measure variant={visual.variant} left={visual.left} right={visual.right} />
+      return (
+        <Measure
+          variant={visual.variant}
+          left={visual.left}
+          right={visual.right}
+          highlight={visual.highlight}
+          revealed={revealed}
+        />
+      )
     case 'clock':
       return <Clock hour={visual.hour} minute={visual.minute} />
     case 'pictograph':
-      return <Pictograph rows={visual.rows} />
+      return <Pictograph rows={visual.rows} revealed={revealed} />
     case 'none':
       return null
   }
@@ -67,7 +77,15 @@ function Objects({ emoji, count }: { emoji: string; count: number }) {
 }
 
 // --- ステージ2：2つの グループを くらべる（1対1で ならべる）-----------------
-function Compare({ left, right }: { left: { emoji: string; count: number }; right: { emoji: string; count: number } }) {
+function Compare({
+  left,
+  right,
+  revealed,
+}: {
+  left: { emoji: string; count: number }
+  right: { emoji: string; count: number }
+  revealed: boolean
+}) {
   return (
     <div className="compare">
       <div className="compare-col">
@@ -77,6 +95,7 @@ function Compare({ left, right }: { left: { emoji: string; count: number }; righ
             <span key={i} className="obj pop" style={{ animationDelay: `${i * 60}ms` }}>{left.emoji}</span>
           ))}
         </div>
+        {revealed && <div className="compare-count pop">{left.count}</div>}
       </div>
       <div className="compare-divider" />
       <div className="compare-col">
@@ -86,6 +105,7 @@ function Compare({ left, right }: { left: { emoji: string; count: number }; righ
             <span key={i} className="obj pop" style={{ animationDelay: `${i * 60}ms` }}>{right.emoji}</span>
           ))}
         </div>
+        {revealed && <div className="compare-count pop">{right.count}</div>}
       </div>
     </div>
   )
@@ -94,20 +114,22 @@ function Compare({ left, right }: { left: { emoji: string; count: number }; righ
 // --- ステージ3：よこ ならびの じゅんばん ------------------------------------
 function OrdinalRow({
   items,
-  from,
   targetIndex,
+  ends,
+  countFrom,
   revealed,
 }: {
   items: string[]
-  from: 'front' | 'back'
   targetIndex: number
+  ends: [string, string]
+  countFrom: 'left' | 'right'
   revealed: boolean
 }) {
   return (
     <div className="ordinal">
       <div className="ordinal-ends">
-        <span>{from === 'front' ? '👈 まえ' : 'まえ'}</span>
-        <span>{from === 'back' ? 'うしろ 👉' : 'うしろ'}</span>
+        <span>{countFrom === 'left' ? `👉 ${ends[0]}` : ends[0]}</span>
+        <span>{countFrom === 'right' ? `${ends[1]} 👈` : ends[1]}</span>
       </div>
       <div className="ordinal-row">
         {items.map((it, i) => (
@@ -142,7 +164,7 @@ function TenFrame({ cells }: { cells: CellState[] }) {
 }
 
 // --- ステージ4：10と いくつ -------------------------------------------------
-function TenAndOnes({ ones }: { ones: number }) {
+function TenAndOnes({ ones, hideOnes }: { ones: number; hideOnes?: boolean }) {
   return (
     <div className="blocks-row">
       <div className="group">
@@ -151,12 +173,21 @@ function TenAndOnes({ ones }: { ones: number }) {
       </div>
       <div className="plus">と</div>
       <div className="group">
-        <div className="ones">
-          {Array.from({ length: ones }).map((_, i) => (
-            <div key={i} className="cell cell-green pop" style={{ animationDelay: `${i * 45}ms` }} />
-          ))}
-        </div>
-        <div className="group-cap">{ones}</div>
+        {hideOnes ? (
+          <>
+            <div className="ones-hidden pop">?</div>
+            <div className="group-cap">なんこ？</div>
+          </>
+        ) : (
+          <>
+            <div className="ones">
+              {Array.from({ length: ones }).map((_, i) => (
+                <div key={i} className="cell cell-green pop" style={{ animationDelay: `${i * 45}ms` }} />
+              ))}
+            </div>
+            <div className="group-cap">{ones}</div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -222,66 +253,126 @@ function MakeTen({ filled }: { filled: number }) {
   )
 }
 
-// --- ステージ9：くりあがり たしざん（10を つくる）--------------------------
+// --- ステージ9：くりあがり たしざん（10を つくる うごきを 見せる）----------
+// じゅんばん：
+//   1. ひだりに a この あお、みぎに b この みどり が ならぶ
+//   2. せつめいの ふきだしが でる
+//   3. みぎの みどりが need こ、ひだりの あきに うつって 10が できる
+//   4. 「10」と「のこり」の ラベルが でる
 function AddCarry({ a, b }: { a: number; b: number }) {
-  const need = 10 - a
+  const need = 10 - a // 10に するのに ひつような かず
   const rest = b - need
-  const frame1: CellState[] = [
-    ...Array(a).fill('blue' as CellState),
-    ...Array(need).fill('green' as CellState),
-  ]
-  const frame2: CellState[] = Array(rest).fill('green' as CellState)
+  const moveAt = 1.5 // みどりが うつりはじめる 時刻（びょう）
+  const doneAt = moveAt + need * 0.15 + 0.3
+
   return (
-    <div className="blocks-row">
-      <div className="group">
-        <TenFrame cells={frame1} />
-        <div className="group-cap">10</div>
+    <div className="carry-wrap">
+      <div className="carry-caption late-pop" style={{ animationDelay: '0.7s' }}>
+        💡 {b}を {need}と {rest}に わけて、10を つくろう！
       </div>
-      <div className="plus">と</div>
-      <div className="group">
-        <TenFrame cells={frame2} />
-        <div className="group-cap">{rest}</div>
+      <div className="blocks-row">
+        <div className="group">
+          <div className="tenframe">
+            {Array.from({ length: a }).map((_, i) => (
+              <div key={`a${i}`} className="cell cell-blue pop" style={{ animationDelay: `${i * 35}ms` }} />
+            ))}
+            {/* みぎから うつって くる みどり（おくれて 出現） */}
+            {Array.from({ length: need }).map((_, i) => (
+              <div key={`m${i}`} className="cell cell-green pop" style={{ animationDelay: `${moveAt + i * 0.15}s` }} />
+            ))}
+          </div>
+          <div className="group-cap late-pop" style={{ animationDelay: `${doneAt}s` }}>
+            10
+          </div>
+        </div>
+        <div className="plus">と</div>
+        <div className="group">
+          <div className="tenframe">
+            {/* うつって いく ぶんは、すこし ひかって きえる（ゴースト） */}
+            {Array.from({ length: need }).map((_, i) => (
+              <div key={`g${i}`} className="cell cell-green cell-ghost" style={{ animationDelay: `${0.5 + i * 0.12}s` }} />
+            ))}
+            {Array.from({ length: rest }).map((_, i) => (
+              <div key={`r${i}`} className="cell cell-green pop" style={{ animationDelay: `${(need + i) * 40}ms` }} />
+            ))}
+          </div>
+          <div className="group-cap late-pop" style={{ animationDelay: `${doneAt}s` }}>
+            のこり {rest}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-// --- ステージ10：くりさがり ひきざん（10から ひく）------------------------
+// --- ステージ10：くりさがり ひきざん（10から ひく うごきを 見せる）---------
+// じゅんばん：
+//   1. 10の まとまり（あお）と ばら が ならぶ
+//   2. せつめいの ふきだしが でる
+//   3. 10の まとまりから b こが ✕に かわって いく
+//   4. 「のこり」の ラベルが でる
 function SubBorrow({ a, b }: { a: number; b: number }) {
   const onesA = a - 10
-  // 10のまとまりから b を とる（さきに ✕）、のこりは blue
-  const ten: CellState[] = [
-    ...Array(b).fill('take' as CellState),
-    ...Array(10 - b).fill('blue' as CellState),
-  ]
+  const takeAt = 1.3
+  const doneAt = takeAt + b * 0.12 + 0.4
+
   return (
-    <div className="blocks-row">
-      <div className="group">
-        <TenFrame cells={ten} />
-        <div className="group-cap">10から {b}を とる</div>
+    <div className="carry-wrap">
+      <div className="carry-caption late-pop" style={{ animationDelay: '0.7s' }}>
+        💡 10の まとまりから {b}を ひこう！
       </div>
-      <div className="plus">と</div>
-      <div className="group">
-        <div className="ones">
-          {Array.from({ length: onesA }).map((_, i) => (
-            <div key={i} className="cell cell-blue pop" style={{ animationDelay: `${i * 45}ms` }} />
-          ))}
+      <div className="blocks-row">
+        <div className="group">
+          <div className="tenframe">
+            {Array.from({ length: b }).map((_, i) => (
+              <div key={`t${i}`} className="cell cell-take cell-take-anim" style={{ animationDelay: `${takeAt + i * 0.12}s` }}>
+                ✕
+              </div>
+            ))}
+            {Array.from({ length: 10 - b }).map((_, i) => (
+              <div key={`s${i}`} className="cell cell-blue pop" style={{ animationDelay: `${i * 35}ms` }} />
+            ))}
+          </div>
+          <div className="group-cap late-pop" style={{ animationDelay: `${doneAt}s` }}>
+            のこり {10 - b}
+          </div>
         </div>
-        <div className="group-cap">{onesA}</div>
+        <div className="plus">と</div>
+        <div className="group">
+          <div className="ones">
+            {Array.from({ length: onesA }).map((_, i) => (
+              <div key={i} className="cell cell-blue pop" style={{ animationDelay: `${i * 45}ms` }} />
+            ))}
+          </div>
+          <div className="group-cap">{onesA}</div>
+        </div>
       </div>
     </div>
   )
 }
 
 // --- ステージ12：ながさ・ひろさ・かさ --------------------------------------
-function Measure({ variant, left, right }: { variant: 'length' | 'area' | 'volume'; left: number; right: number }) {
+function Measure({
+  variant,
+  left,
+  right,
+  highlight,
+  revealed,
+}: {
+  variant: 'length' | 'area' | 'volume'
+  left: number
+  right: number
+  highlight?: 'left' | 'right'
+  revealed: boolean
+}) {
   const sizeToPct = (v: number) => 30 + v * 22 // 1→52%, 2→74%, 3→96%
+  const winClass = (side: 'left' | 'right') => (revealed && highlight === side ? 'win' : '')
 
   if (variant === 'length') {
     return (
       <div className="measure-col">
-        {[left, right].map((v, i) => (
-          <div key={i} className="measure-line">
+        {([['left', left], ['right', right]] as const).map(([side, v], i) => (
+          <div key={side} className={`measure-line ${winClass(side)}`}>
             <div className="pencil" style={{ width: `${sizeToPct(v)}%` }}>✏️</div>
             <span className="measure-tag">{i === 0 ? 'ひだり' : 'みぎ'}</span>
           </div>
@@ -293,8 +384,8 @@ function Measure({ variant, left, right }: { variant: 'length' | 'area' | 'volum
   if (variant === 'area') {
     return (
       <div className="measure-pair">
-        {[left, right].map((v, i) => (
-          <div key={i} className="measure-item">
+        {([['left', left], ['right', right]] as const).map(([side, v], i) => (
+          <div key={side} className={`measure-item ${winClass(side)}`}>
             <div className="rug" style={{ width: `${40 + v * 22}px`, height: `${40 + v * 22}px` }} />
             <span className="measure-tag">{i === 0 ? 'ひだり' : 'みぎ'}</span>
           </div>
@@ -306,8 +397,8 @@ function Measure({ variant, left, right }: { variant: 'length' | 'area' | 'volum
   // volume（コップの みず）
   return (
     <div className="measure-pair">
-      {[left, right].map((v, i) => (
-        <div key={i} className="measure-item">
+      {([['left', left], ['right', right]] as const).map(([side, v], i) => (
+        <div key={side} className={`measure-item ${winClass(side)}`}>
           <div className="cup">
             <div className="water" style={{ height: `${v * 28}px` }} />
           </div>
@@ -351,17 +442,24 @@ function Clock({ hour, minute }: { hour: number; minute: number }) {
 }
 
 // --- ステージ14：えグラフ ---------------------------------------------------
-function Pictograph({ rows }: { rows: { label: string; emoji: string; count: number }[] }) {
+function Pictograph({
+  rows,
+  revealed,
+}: {
+  rows: { label: string; emoji: string; count: number }[]
+  revealed: boolean
+}) {
   return (
     <div className="pictograph">
       {rows.map((r, i) => (
         <div key={r.label} className="picto-row pop" style={{ animationDelay: `${i * 120}ms` }}>
           <span className="picto-label">{r.label}</span>
           <span className="picto-icons">
-            {Array.from({ length: r.count }).map((_, i) => (
-              <span key={i} className="picto-icon">{r.emoji}</span>
+            {Array.from({ length: r.count }).map((_, j) => (
+              <span key={j} className="picto-icon">{r.emoji}</span>
             ))}
           </span>
+          {revealed && <span className="picto-count pop">{r.count}</span>}
         </div>
       ))}
     </div>

@@ -25,8 +25,16 @@ export interface Group {
 export type Visual =
   | { kind: 'objects'; emoji: string; count: number }
   | { kind: 'compare'; left: Group; right: Group }
-  | { kind: 'ordinalRow'; items: string[]; from: 'front' | 'back'; targetIndex: number }
-  | { kind: 'tenAndOnes'; ones: number }
+  | {
+      kind: 'ordinalRow'
+      items: string[]
+      targetIndex: number
+      /** 両はしの ことば（[ひだり側, みぎ側]）。例：['まえ','うしろ'] や ['ひだり','みぎ'] */
+      ends: [string, string]
+      /** どちら側から かぞえるか（矢印の 表示用） */
+      countFrom: 'left' | 'right'
+    }
+  | { kind: 'tenAndOnes'; ones: number; hideOnes?: boolean }
   | { kind: 'sequence'; numbers: (number | null)[] }
   | { kind: 'addBlocks'; a: number; b: number; emoji: string }
   | { kind: 'subBlocks'; a: number; b: number; emoji: string }
@@ -34,7 +42,14 @@ export type Visual =
   | { kind: 'addCarry'; a: number; b: number }
   | { kind: 'subBorrow'; a: number; b: number }
   | { kind: 'shapeObject'; emoji: string }
-  | { kind: 'measure'; variant: 'length' | 'area' | 'volume'; left: number; right: number }
+  | {
+      kind: 'measure'
+      variant: 'length' | 'area' | 'volume'
+      left: number
+      right: number
+      /** せいかいの がわ（こたえ合わせ後に ひからせる） */
+      highlight?: 'left' | 'right'
+    }
   | { kind: 'clock'; hour: number; minute: number }
   | { kind: 'pictograph'; rows: { label: string; emoji: string; count: number }[] }
   | { kind: 'none' }

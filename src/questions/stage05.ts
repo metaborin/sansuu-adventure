@@ -1,11 +1,36 @@
 import type { Question, Visual } from '../types'
-import { byLevel, numberChoices, randInt, uid } from '../utils/random'
+import { byLevel, numberChoices, randInt, sample, uid } from '../utils/random'
 
-// ステージ5：かずの ならび（ぬけている かず・つぎ・まえ）
+// ステージ5：かずの ならび（ぬけている かず・つぎ・まえ・とびとび）
 // レベルで あつかう かずの おおきさを 変える（1〜20 → 1〜50 → 1〜100）
+// レベル3では「2とび・5とび・10とび」の 数列も 出る
 export function generateStage5(level: number): Question {
-  const variant = randInt(0, 2)
   const max = byLevel(level, [20, 50, 100])
+
+  // レベル3は ときどき とびとびの 数列
+  const skipChance = byLevel(level, [0, 0, 0.35])
+  if (Math.random() < skipChance) {
+    const step = sample([2, 5, 10])
+    const maxStartMultiple = Math.floor((max - 4 * step) / step)
+    const start = step * randInt(1, Math.max(1, maxStartMultiple))
+    const nums = [start, start + step, start + 2 * step, start + 3 * step, start + 4 * step]
+    const blankPos = randInt(1, 3)
+    const answer = nums[blankPos]
+    const shown: (number | null)[] = nums.map((n, i) => (i === blankPos ? null : n))
+    return {
+      id: uid(),
+      prompt: '□に はいる かずは？',
+      visual: { kind: 'sequence', numbers: shown },
+      choices: numberChoices(answer, { min: 0, max: max + step, spread: step }),
+      answer: String(answer),
+      hints: [
+        `${step}ずつ おおきく なっているよ。`,
+        `${nums[blankPos - 1]}に ${step}を たした かずが はいるよ。`,
+      ],
+    }
+  }
+
+  const variant = randInt(0, 2)
 
   if (variant === 0) {
     // ならびの中の □ をこたえる： 11 12 □ 14 15

@@ -32,12 +32,19 @@ export function generateStage12(level: number): Question {
 
   const askMore = Math.random() < 0.5
   const word = askMore ? WORDS[variant].more : WORDS[variant].less
-  const answer = askMore ? (left > right ? 'left' : 'right') : left < right ? 'left' : 'right'
+  const answer: 'left' | 'right' = askMore
+    ? left > right
+      ? 'left'
+      : 'right'
+    : left < right
+      ? 'left'
+      : 'right'
 
   return {
     id: uid(),
     prompt: `どちらが ${word}？`,
-    visual: { kind: 'measure', variant, left, right },
+    // highlight: こたえ合わせ後に せいかいの がわを ひからせる
+    visual: { kind: 'measure', variant, left, right, highlight: answer },
     choices: [
       { label: '⬅️ ひだり', value: 'left' },
       { label: 'みぎ ➡️', value: 'right' },

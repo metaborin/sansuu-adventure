@@ -583,6 +583,13 @@ body {
   background: #ffe08a;
   border-radius: 2px;
 }
+/* こたえ合わせ後に 出る かず */
+.compare-count {
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--accent);
+  margin-top: 6px;
+}
 
 /* じゅんばん */
 .ordinal {
@@ -662,6 +669,82 @@ body {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* --- くりあがり・くりさがりの「うごき」 ----------------------------------- */
+.carry-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.carry-caption {
+  background: #fff3bf;
+  color: #a5730a;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-align: center;
+}
+/* おくれて ぽんっと 出る（reduced-motion では すぐ 見える） */
+.late-pop {
+  animation: pop 0.35s ease both;
+}
+/* うつって いく ドット：さいしょは 見えて、あとで きえる */
+.cell-ghost {
+  opacity: 0;
+  animation: ghostOut 1.9s ease both;
+}
+@keyframes ghostOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+/* 10の まとまりから とられる ドット：あお → ✕ に かわる */
+.cell-take-anim {
+  animation: takeOver 1.4s ease both;
+}
+@keyframes takeOver {
+  0%,
+  45% {
+    background: #4dabf7;
+    color: transparent;
+    transform: scale(1);
+  }
+  65% {
+    transform: scale(1.2);
+  }
+  100% {
+    background: #ffc9c9;
+    color: #c92a2a;
+    transform: scale(1);
+  }
+}
+
+/* かくした「ばら」（10と □で 13） */
+.ones-hidden {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  border: 3px dashed #f08c00;
+  background: #fff3bf;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: #f08c00;
 }
 .group {
   text-align: center;
@@ -825,6 +908,25 @@ body {
 }
 .picto-icon {
   font-size: 1.7rem;
+}
+/* こたえ合わせ後に 出る かず */
+.picto-count {
+  margin-left: auto;
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--accent);
+  padding-left: 8px;
+}
+
+/* ながさ・ひろさ・かさ：せいかいの がわを ひからせる */
+.measure-line.win .pencil,
+.measure-item.win .rug,
+.measure-item.win .cup {
+  box-shadow: 0 0 0 4px #ffd43b;
+}
+.measure-line.win,
+.measure-item.win {
+  animation: pop 0.3s ease;
 }
 
 /* ==========================================================================
