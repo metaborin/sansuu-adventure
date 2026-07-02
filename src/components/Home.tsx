@@ -1,7 +1,7 @@
 import type { Progress } from '../types'
 import { STAGES } from '../data/stages'
 import { BADGES } from '../data/badges'
-import { clearedCount, isStageUnlocked, totalStars } from '../utils/storage'
+import { clearedCount, isStageUnlocked, todayKey, totalStars } from '../utils/storage'
 
 // ==========================================================================
 // ホーム画面 ＋ ステージ選択
@@ -16,6 +16,7 @@ type Props = {
   onToggleSpeech: () => void
   onStart: (stageId: number) => void
   onStartReview: () => void
+  onStartDaily: () => void
   onOpenBadges: () => void
   onUnlockAll: () => void
   onReset: () => void
@@ -29,6 +30,7 @@ export function Home({
   onToggleSpeech,
   onStart,
   onStartReview,
+  onStartDaily,
   onOpenBadges,
   onUnlockAll,
   onReset,
@@ -42,6 +44,10 @@ export function Home({
 
   // ふくしゅうが ある？（1回めで まちがえた 問題が のこっている ステージ）
   const missTotal = STAGES.reduce((sum, s) => sum + (progress.stages[s.id]?.misses ?? 0), 0)
+
+  // きょうのチャレンジは クリアずみ？
+  const dailyDone = progress.daily.lastClearDate === todayKey()
+  const streak = progress.daily.streak
 
   return (
     <div className="home">
@@ -80,6 +86,19 @@ export function Home({
 
       <button className="btn btn-big btn-start" onClick={() => onStart(nextStage.id)}>
         ▶ ステージ {nextStage.id} を はじめる
+      </button>
+
+      <button
+        className={`daily-card ${dailyDone ? 'done' : ''}`}
+        onClick={onStartDaily}
+        aria-label="きょうのチャレンジを はじめる"
+      >
+        <span className="daily-emoji">{dailyDone ? '✅' : '🌞'}</span>
+        <span className="daily-text">
+          きょうの チャレンジ
+          <small>{dailyDone ? 'きょうは クリアずみ！ すごい！' : 'まいにち 1かい、ミックス 5もん'}</small>
+        </span>
+        {streak > 0 && <span className="daily-streak">🔥{streak}</span>}
       </button>
 
       {missTotal > 0 && (

@@ -1,4 +1,4 @@
-import type { Progress, StageProgress } from '../types'
+import type { DailyProgress, Progress, StageProgress } from '../types'
 import { STAGES } from '../data/stages'
 
 // ==========================================================================
@@ -17,6 +17,56 @@ function emptyStage(): StageProgress {
   return { cleared: false, bestCorrect: 0, stars: 0, level: 1, misses: 0 }
 }
 
+/** きょうのチャレンジの初期値 */
+function emptyDaily(): DailyProgress {
+  return { lastClearDate: null, streak: 0, totalClears: 0 }
+}
+
+/** よみこんだ古いデータの daily をうめる */
+function normalizeDaily(raw: Partial<DailyProgress> | undefined): DailyProgress {
+  return {
+    lastClearDate: typeof raw?.lastClearDate === 'string' ? raw.lastClearDate : null,
+    streak: typeof raw?.streak === 'number' ? raw.streak : 0,
+    totalClears: typeof raw?.totalClears === 'number' ? raw.totalClears : 0,
+  }
+}
+
+// --- 日付（きょうのチャレンジ用・ローカル時刻） ---------------------------
+
+/** Date → YYYY-MM-DD */
+export function dateKey(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+export function todayKey(): string {
+  return dateKey(new Date())
+}
+
+export function yesterdayKey(): string {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return dateKey(d)
+}
+
+/**
+ * きょうのチャレンジを クリアしたときの きろく更新（純粋関数）。
+ * ・きょう すでに クリアずみ → 変えない（1日1回だけ 数える）
+ * ・きのうも クリアして いた → れんぞく +1
+ * ・あいだが あいた → れんぞく 1 から やりなおし
+ */
+export function recordDailyClear(
+  daily: DailyProgress,
+  today = todayKey(),
+  yesterday = yesterdayKey()
+): DailyProgress {
+  if (daily.lastClearDate === today) return daily
+  const streak = daily.lastClearDate === yesterday ? daily.streak + 1 : 1
+  return { lastClearDate: today, streak, totalClears: daily.totalClears + 1 }
+}
+
 /** よみこんだ古いデータに足りない項目をうめる（グレースフル移行） */
 function normalizeStage(raw: Partial<StageProgress> | undefined): StageProgress {
   return { ...emptyStage(), ...(raw ?? {}) }
@@ -28,7 +78,14 @@ export function createEmptyProgress(): Progress {
   for (const s of STAGES) {
     stages[s.id] = emptyStage()
   }
-  return { version: PROGRESS_VERSION, stages, unlockedAll: false, badges: [], reviewClears: 0 }
+  return {
+    version: PROGRESS_VERSION,
+    stages,
+    unlockedAll: false,
+    badges: [],
+    reviewClears: 0,
+    daily: emptyDaily(),
+  }
 }
 
 /** 進捗をよみこむ（なければ・こわれていれば 新規作成） */
@@ -51,6 +108,7 @@ export function loadProgress(): Progress {
       unlockedAll: Boolean(parsed.unlockedAll),
       badges: Array.isArray(parsed.badges) ? parsed.badges.filter((b) => typeof b === 'string') : [],
       reviewClears: typeof parsed.reviewClears === 'number' ? parsed.reviewClears : 0,
+      daily: normalizeDaily(parsed.daily),
     }
   } catch {
     return createEmptyProgress()

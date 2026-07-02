@@ -113,6 +113,16 @@ export interface StageProgress {
   misses: number
 }
 
+/** きょうのチャレンジの きろく */
+export interface DailyProgress {
+  /** さいごに クリアした日（YYYY-MM-DD・ローカル時刻）。まだなら null */
+  lastClearDate: string | null
+  /** れんぞくで クリアした 日数 */
+  streak: number
+  /** これまでに クリアした 回数（バッジ判定用） */
+  totalClears: number
+}
+
 /** localStorage に保存する進捗データ全体 */
 export interface Progress {
   /** データ形式のバージョン（形式を変えたら数字を上げる） */
@@ -128,4 +138,6 @@ export interface Progress {
   badges: string[]
   /** ふくしゅうを クリア（4もん以上 せいかい）した かいすう（バッジ判定用） */
   reviewClears: number
+  /** きょうのチャレンジの きろく */
+  daily: DailyProgress
 }

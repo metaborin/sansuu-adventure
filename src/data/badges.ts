@@ -82,6 +82,27 @@ export const BADGES: BadgeMeta[] = [
     how: 'ふくしゅうで 4もん いじょう せいかいする',
     check: (p) => p.reviewClears >= 1,
   },
+  {
+    id: 'daily-first',
+    name: 'きょうの チャレンジャー',
+    emoji: '🌞',
+    how: 'きょうのチャレンジを クリアする',
+    check: (p) => p.daily.totalClears >= 1,
+  },
+  {
+    id: 'streak-3',
+    name: '3にち れんぞく',
+    emoji: '🔥',
+    how: 'きょうのチャレンジを 3にち れんぞくで クリアする',
+    check: (p) => p.daily.streak >= 3,
+  },
+  {
+    id: 'streak-7',
+    name: '7にち れんぞく',
+    emoji: '🌈',
+    how: 'きょうのチャレンジを 7にち れんぞくで クリアする',
+    check: (p) => p.daily.streak >= 7,
+  },
 ]
 
 /** IDから バッジ情報を 引く */

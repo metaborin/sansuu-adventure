@@ -77,6 +77,27 @@ describe('evaluateBadges', () => {
     expect(ids).toContain('first-clear')
   })
 
+  it('きょうのチャレンジ系バッジ（初クリア・3にち・7にち）', () => {
+    const p1 = progressWith((p) => {
+      p.daily = { lastClearDate: '2026-07-02', streak: 1, totalClears: 1 }
+    })
+    const ids1 = evaluateBadges(p1).newBadges.map((b) => b.id)
+    expect(ids1).toContain('daily-first')
+    expect(ids1).not.toContain('streak-3')
+
+    const p3 = progressWith((p) => {
+      p.daily = { lastClearDate: '2026-07-02', streak: 3, totalClears: 3 }
+    })
+    const ids3 = evaluateBadges(p3).newBadges.map((b) => b.id)
+    expect(ids3).toContain('streak-3')
+    expect(ids3).not.toContain('streak-7')
+
+    const p7 = progressWith((p) => {
+      p.daily = { lastClearDate: '2026-07-02', streak: 7, totalClears: 7 }
+    })
+    expect(evaluateBadges(p7).newBadges.map((b) => b.id)).toContain('streak-7')
+  })
+
   it('レベル3で「レベル3 とうたつ」、ふくしゅうクリアで「ふくしゅう めいじん」', () => {
     const pLv = progressWith((p) => {
       p.stages[3] = { cleared: true, bestCorrect: 5, stars: 3, level: 3, misses: 0 }

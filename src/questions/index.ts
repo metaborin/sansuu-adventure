@@ -96,6 +96,44 @@ export function generateReviewQuestions(
 }
 
 /**
+ * きょうのチャレンジ用に、あそべる ステージから n 問（デフォルト5問）ミックスして作る。
+ * なるべく ちがう ステージから 出るように、シャッフルして じゅんばんに つかう。
+ */
+export function generateDailyQuestions(
+  entries: { stageId: number; level: number }[],
+  n = 5
+): Question[] {
+  if (entries.length === 0) return generateQuestions(1, n, 1)
+
+  // ステージを シャッフルして、たりなければ くりかえす
+  const order: { stageId: number; level: number }[] = []
+  while (order.length < n) {
+    const shuffled = [...entries].sort(() => Math.random() - 0.5)
+    order.push(...shuffled)
+  }
+
+  const questions: Question[] = []
+  const seen = new Set<string>()
+  let guard = 0
+  let i = 0
+  while (questions.length < n && guard < n * 30) {
+    guard += 1
+    const pick = order[i % order.length]
+    const q = generateOne(pick.stageId, pick.level)
+    const key = `${q.prompt}|${q.answer}|${JSON.stringify(q.visual)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    questions.push(q)
+    i += 1
+  }
+  while (questions.length < n) {
+    const pick = order[questions.length % order.length]
+    questions.push(generateOne(pick.stageId, pick.level))
+  }
+  return questions
+}
+
+/**
  * ステージ用に n 問（デフォルト5問）作る。
  * level（1〜3）で 出題の むずかしさを 変えます。
  * なるべく おなじ問題が つづかない ように、かんたんな重複チェックをします。

@@ -22,6 +22,10 @@ type Props = {
   hasNext: boolean
   /** ホームからの「ふくしゅう」セッションの けっかか */
   isReview?: boolean
+  /** きょうのチャレンジの けっかか */
+  isDaily?: boolean
+  /** きょうのチャレンジの れんぞく日数（isDaily のとき ひょうじ） */
+  streak?: number
   /** このプレイで あたらしく かくとくした バッジ */
   newBadges?: BadgeMeta[]
   onNext: () => void
@@ -39,6 +43,8 @@ export function Result({
   newLevel,
   hasNext,
   isReview = false,
+  isDaily = false,
+  streak = 0,
   newBadges = [],
   onNext,
   onReplay,
@@ -46,7 +52,15 @@ export function Result({
 }: Props) {
   // けっか画面が でたら 音で しらせる（クリアは ファンファーレ）
   useEffect(() => {
-    if (isReview) {
+    if (isDaily) {
+      if (cleared) {
+        playClear()
+        window.setTimeout(() => speakAuto('チャレンジ クリア！'), 700)
+      } else {
+        playWrong()
+        window.setTimeout(() => speakAuto('また チャレンジしてね！'), 300)
+      }
+    } else if (isReview) {
       // ふくしゅうは いつでも 前向きに
       playClear()
       window.setTimeout(() => speakAuto(cleared ? 'ふくしゅう ばっちり！' : 'よく がんばったね！'), 700)
@@ -64,13 +78,17 @@ export function Result({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const title = isReview
+  const title = isDaily
     ? cleared
-      ? 'ふくしゅう ばっちり！'
-      : 'よく がんばったね！'
-    : cleared
-      ? 'クリア！ おめでとう！'
-      : 'おしい！ もうすこし！'
+      ? 'チャレンジ クリア！'
+      : 'おしい！ また チャレンジ！'
+    : isReview
+      ? cleared
+        ? 'ふくしゅう ばっちり！'
+        : 'よく がんばったね！'
+      : cleared
+        ? 'クリア！ おめでとう！'
+        : 'おしい！ もうすこし！'
 
   return (
     <div className="result" style={{ ['--accent' as string]: stage.color }}>
@@ -85,14 +103,22 @@ export function Result({
       )}
 
       <div className="card result-card">
-        <div className="result-face">{isReview ? (cleared ? '🌟' : '💪') : cleared ? '🏆' : '💪'}</div>
+        <div className="result-face">
+          {isDaily ? (cleared ? '🌞' : '💪') : isReview ? (cleared ? '🌟' : '💪') : cleared ? '🏆' : '💪'}
+        </div>
         <h2 className="result-title">{title}</h2>
 
         <p className="result-score">
           {total}もん ちゅう <b>{correct}</b>もん せいかい
         </p>
 
-        {!isReview && (
+        {isDaily && cleared && streak >= 1 && (
+          <div className="streak-banner pop">
+            🔥 れんぞく <b>{streak}</b>にち！{streak >= 2 ? ' すごい！' : ' あしたも やってみよう！'}
+          </div>
+        )}
+
+        {!isReview && !isDaily && (
           <div className="result-stars">
             {[1, 2, 3].map((n) => (
               <span key={n} className={n <= stars ? 'big-star on pop' : 'big-star'} style={{ animationDelay: `${n * 150}ms` }}>
@@ -117,7 +143,9 @@ export function Result({
           </div>
         ))}
 
-        {isReview ? (
+        {isDaily ? (
+          !cleared && <p className="result-msg">4もん せいかいで クリアだよ。なんかいでも チャレンジできるよ！</p>
+        ) : isReview ? (
           <p className="result-msg">
             {cleared ? 'にがてが へったよ！ このちょうし！' : 'まちがえても だいじょうぶ。すこしずつ おぼえよう！'}
           </p>
@@ -132,7 +160,7 @@ export function Result({
             </button>
           )}
           <button className="btn btn-big" onClick={onReplay}>
-            {isReview ? '💪 もういちど ふくしゅう' : '🔁 もういちど'}
+            {isDaily ? '🌞 もういちど あそぶ' : isReview ? '💪 もういちど ふくしゅう' : '🔁 もういちど'}
           </button>
           <button className="btn btn-ghost" onClick={onHome}>
             🏠 ホームへ

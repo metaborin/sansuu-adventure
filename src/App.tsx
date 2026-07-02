@@ -6,12 +6,13 @@ import { Game } from './components/Game'
 import { Result } from './components/Result'
 import { BadgeBook } from './components/Badges'
 import { evaluateBadges, getBadge, type BadgeMeta } from './data/badges'
-import { generateReviewQuestions } from './questions'
+import { generateDailyQuestions, generateReviewQuestions } from './questions'
 import {
   createEmptyProgress,
   isStageUnlocked,
   loadProgress,
   nextLevel,
+  recordDailyClear,
   saveProgress,
   starsForCorrect,
 } from './utils/storage'
@@ -37,12 +38,24 @@ const REVIEW_STAGE: StageMeta = {
   featured: true,
 }
 
+// 「きょうのチャレンジ」用の 仮想ステージ（一覧には 出ない）
+const DAILY_STAGE: StageMeta = {
+  id: -1,
+  title: 'きょうの チャレンジ',
+  emoji: '🌞',
+  color: '#f59f00',
+  goal: 'まいにち 1かい、ミックス 5もん',
+  featured: true,
+}
+
 type Screen =
   | { name: 'home' }
   | { name: 'game'; stageId: number }
   | { name: 'result'; stageId: number; correct: number; leveledUp: boolean; newBadges: string[] }
   | { name: 'review'; questions: Question[]; stageIds: number[] }
   | { name: 'review-result'; correct: number; newBadges: string[] }
+  | { name: 'daily'; questions: Question[] }
+  | { name: 'daily-result'; correct: number; newBadges: string[]; streak: number }
   | { name: 'badges' }
 
 /** バッジIDの ならびを 表示用の 情報に かえる */
@@ -159,6 +172,33 @@ export default function App() {
     setScreen({ name: 'review-result', correct, newBadges: newBadges.map((b) => b.id) })
   }
 
+  // --- きょうのチャレンジ ----------------------------------------------------
+  function startDaily() {
+    // あそべる（解放ずみ）ステージから、いまの レベルで ミックス出題
+    const entries = STAGES.filter((s) => isStageUnlocked(progress, s.id)).map((s) => ({
+      stageId: s.id,
+      level: progress.stages[s.id]?.level ?? 1,
+    }))
+    setPlayKey((k) => k + 1)
+    setScreen({ name: 'daily', questions: generateDailyQuestions(entries, 5) })
+  }
+
+  function finishDaily(correct: number) {
+    // クリア（4問以上）なら きろく更新（1日1回だけ 数える）
+    let next: Progress = progress
+    if (correct >= 4) {
+      next = { ...progress, daily: recordDailyClear(progress.daily) }
+    }
+    const { progress: withBadges, newBadges } = evaluateBadges(next)
+    updateProgress(withBadges)
+    setScreen({
+      name: 'daily-result',
+      correct,
+      newBadges: newBadges.map((b) => b.id),
+      streak: withBadges.daily.streak,
+    })
+  }
+
   function unlockAll() {
     const ok = window.confirm('すべての ステージを 解放しますか？（せんせい・ほごしゃ用）')
     if (!ok) return
@@ -207,6 +247,42 @@ export default function App() {
 
   if (screen.name === 'badges') {
     return <BadgeBook progress={progress} onBack={() => setScreen({ name: 'home' })} />
+  }
+
+  if (screen.name === 'daily') {
+    return (
+      <Game
+        key={`daily-${playKey}`}
+        stage={DAILY_STAGE}
+        level={1}
+        soundOn={soundOn}
+        customQuestions={screen.questions}
+        onToggleSound={toggleSound}
+        onFinish={finishDaily}
+        onQuit={() => setScreen({ name: 'home' })}
+      />
+    )
+  }
+
+  if (screen.name === 'daily-result') {
+    return (
+      <Result
+        stage={DAILY_STAGE}
+        correct={screen.correct}
+        total={5}
+        stars={0}
+        cleared={screen.correct >= 4}
+        leveledUp={false}
+        newLevel={1}
+        hasNext={false}
+        isDaily
+        streak={screen.streak}
+        newBadges={badgeMetas(screen.newBadges)}
+        onNext={() => setScreen({ name: 'home' })}
+        onReplay={startDaily}
+        onHome={() => setScreen({ name: 'home' })}
+      />
+    )
   }
 
   if (screen.name === 'review-result') {
@@ -269,6 +345,7 @@ export default function App() {
       onToggleSpeech={toggleSpeech}
       onStart={startStage}
       onStartReview={startReview}
+      onStartDaily={startDaily}
       onOpenBadges={() => setScreen({ name: 'badges' })}
       onUnlockAll={unlockAll}
       onReset={resetProgress}
@@ -285,6 +362,7 @@ export default function App() {
         onToggleSpeech={toggleSpeech}
         onStart={startStage}
         onStartReview={startReview}
+      onStartDaily={startDaily}
         onOpenBadges={() => setScreen({ name: 'badges' })}
         onUnlockAll={unlockAll}
         onReset={resetProgress}
