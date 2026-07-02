@@ -665,12 +665,57 @@ body {
 /* ==========================================================================
    ビジュアル（イラスト・ブロック）
    ========================================================================== */
+.objects-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.objects-hint {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #868e96;
+  background: #f8f9fa;
+  border-radius: 999px;
+  padding: 4px 12px;
+}
 .objects {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: center;
   max-width: 360px;
+}
+/* タップできる え（ボタン化しても 見た目は そのまま） */
+.obj-tap {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  line-height: 1;
+  font-family: inherit;
+  transition: transform 0.08s;
+}
+.obj-tap:active {
+  transform: scale(0.9);
+}
+/* タップで つく ばんごう */
+.count-mark {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 }
 .obj {
   font-size: 2.6rem;

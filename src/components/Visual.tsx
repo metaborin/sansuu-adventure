@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import type { Visual } from '../types'
+import { playTap } from '../utils/audio'
 
 // ==========================================================================
 // 問題の「見た目（イラスト・ブロックなど）」を描くコンポーネント
@@ -15,7 +17,7 @@ type Props = {
 export function VisualView({ visual, revealed }: Props) {
   switch (visual.kind) {
     case 'objects':
-      return <Objects emoji={visual.emoji} count={visual.count} />
+      return <Objects emoji={visual.emoji} count={visual.count} interactive={!revealed} />
     case 'compare':
       return <Compare left={visual.left} right={visual.right} revealed={revealed} />
     case 'ordinalRow':
@@ -63,15 +65,44 @@ export function VisualView({ visual, revealed }: Props) {
   }
 }
 
-// --- ステージ1：ものを ならべて かぞえる -----------------------------------
-function Objects({ emoji, count }: { emoji: string; count: number }) {
+// --- ステージ1：ものを ならべて かぞえる（タップで ばんごうが つく）--------
+// ゆびで さしながら かぞえる のを、がめんの 上で できるように、
+// タップした じゅんばんに 1・2・3…の ばんごうを つける。
+function Objects({ emoji, count, interactive }: { emoji: string; count: number; interactive: boolean }) {
+  // marks[i] = その えに ついた ばんごう（まだなら null）
+  const [marks, setMarks] = useState<(number | null)[]>(() => Array(count).fill(null))
+
+  function tap(i: number) {
+    if (!interactive) return
+    if (marks[i] !== null) return // すでに かぞえた えは そのまま
+    setMarks((ms) => {
+      if (ms[i] !== null) return ms // 連打しても 二重に つかない
+      const n = ms.filter((m) => m !== null).length + 1
+      const copy = [...ms]
+      copy[i] = n
+      return copy
+    })
+    playTap()
+  }
+
   return (
-    <div className="objects">
-      {Array.from({ length: count }).map((_, i) => (
-        <span key={i} className="obj pop" style={{ animationDelay: `${i * 40}ms` }}>
-          {emoji}
-        </span>
-      ))}
+    <div className="objects-wrap">
+      {interactive && <div className="objects-hint">👆 タップして かぞえてみよう</div>}
+      <div className="objects">
+        {Array.from({ length: count }).map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            className="obj obj-tap pop"
+            style={{ animationDelay: `${i * 40}ms` }}
+            onClick={() => tap(i)}
+            aria-label={marks[i] !== null ? `${marks[i]}ばんめ` : 'かぞえる'}
+          >
+            {emoji}
+            {marks[i] !== null && <span className="count-mark pop">{marks[i]}</span>}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
