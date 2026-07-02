@@ -14,6 +14,7 @@ type Props = {
   onToggleSound: () => void
   onToggleSpeech: () => void
   onStart: (stageId: number) => void
+  onStartReview: () => void
   onUnlockAll: () => void
   onReset: () => void
 }
@@ -25,6 +26,7 @@ export function Home({
   onToggleSound,
   onToggleSpeech,
   onStart,
+  onStartReview,
   onUnlockAll,
   onReset,
 }: Props) {
@@ -34,6 +36,9 @@ export function Home({
   // 「はじめる」で すすむ ステージ ＝ まだ クリアして いない いちばん さいしょの 解放ステージ
   const nextStage =
     STAGES.find((s) => isStageUnlocked(progress, s.id) && !progress.stages[s.id]?.cleared) ?? STAGES[0]
+
+  // ふくしゅうが ある？（1回めで まちがえた 問題が のこっている ステージ）
+  const missTotal = STAGES.reduce((sum, s) => sum + (progress.stages[s.id]?.misses ?? 0), 0)
 
   return (
     <div className="home">
@@ -67,6 +72,16 @@ export function Home({
       <button className="btn btn-big btn-start" onClick={() => onStart(nextStage.id)}>
         ▶ ステージ {nextStage.id} を はじめる
       </button>
+
+      {missTotal > 0 && (
+        <button className="review-card" onClick={onStartReview} aria-label="にがてな もんだいを ふくしゅうする">
+          <span className="review-emoji">💪</span>
+          <span className="review-text">
+            ふくしゅうしよう！
+            <small>まちがえた もんだいに もういちど チャレンジ</small>
+          </span>
+        </button>
+      )}
 
       <div className="stage-grid">
         {STAGES.map((s) => {

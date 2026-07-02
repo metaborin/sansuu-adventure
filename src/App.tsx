@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { Progress } from './types'
+import type { Progress, Question, StageMeta } from './types'
 import { getStage, STAGES } from './data/stages'
 import { Home } from './components/Home'
 import { Game } from './components/Game'
 import { Result } from './components/Result'
+import { generateReviewQuestions } from './questions'
 import {
   createEmptyProgress,
   isStageUnlocked,
@@ -21,13 +22,25 @@ import {
 } from './utils/audio'
 
 // ==========================================================================
-// アプリ本体：がめんの きりかえ（ホーム / もんだい / けっか）と 進捗の 管理
+// アプリ本体：がめんの きりかえ（ホーム / もんだい / けっか / ふくしゅう）と 進捗の 管理
 // ==========================================================================
+
+// ホームの「ふくしゅう」用の 仮想ステージ（一覧には 出ない）
+const REVIEW_STAGE: StageMeta = {
+  id: 0,
+  title: 'ふくしゅう',
+  emoji: '💪',
+  color: '#7048e8',
+  goal: 'まちがえた もんだいに もういちど チャレンジ',
+  featured: true,
+}
 
 type Screen =
   | { name: 'home' }
   | { name: 'game'; stageId: number }
   | { name: 'result'; stageId: number; correct: number; leveledUp: boolean }
+  | { name: 'review'; questions: Question[]; stageIds: number[] }
+  | { name: 'review-result'; correct: number }
 
 export default function App() {
   const [progress, setProgress] = useState<Progress>(() => loadProgress())
@@ -69,7 +82,13 @@ export default function App() {
   }
 
   function finishStage(stageId: number, correct: number) {
-    const prev = progress.stages[stageId] ?? { cleared: false, bestCorrect: 0, stars: 0, level: 1 }
+    const prev = progress.stages[stageId] ?? {
+      cleared: false,
+      bestCorrect: 0,
+      stars: 0,
+      level: 1,
+      misses: 0,
+    }
     const gainedStars = starsForCorrect(correct)
     const nowCleared = correct >= 4
     const newLevel = nextLevel(prev.level, correct) // 直近の成績で難易度を自動調整
@@ -82,11 +101,43 @@ export default function App() {
           bestCorrect: Math.max(prev.bestCorrect, correct),
           stars: Math.max(prev.stars, gainedStars),
           level: newLevel,
+          // 1回めで まちがえた数を きろく → ホームの「ふくしゅう」の 出題もとに
+          misses: 5 - correct,
         },
       },
     }
     updateProgress(nextProgress)
     setScreen({ name: 'result', stageId, correct, leveledUp: newLevel > prev.level })
+  }
+
+  // --- ふくしゅう（ホームから）--------------------------------------------
+  function startReview() {
+    const weak = STAGES.filter((s) => (progress.stages[s.id]?.misses ?? 0) > 0)
+    if (weak.length === 0) {
+      setScreen({ name: 'home' })
+      return
+    }
+    const entries = weak.map((s) => ({
+      stageId: s.id,
+      level: progress.stages[s.id]?.level ?? 1,
+      weight: progress.stages[s.id]?.misses ?? 1,
+    }))
+    const { questions, stageIds } = generateReviewQuestions(entries, 5)
+    setPlayKey((k) => k + 1)
+    setScreen({ name: 'review', questions, stageIds })
+  }
+
+  function finishReview(correct: number, stageIds: number[]) {
+    // 4問以上 できたら、出題した ステージの「にがて」を 消す
+    if (correct >= 4) {
+      const stages = { ...progress.stages }
+      for (const id of stageIds) {
+        const sp = stages[id]
+        if (sp) stages[id] = { ...sp, misses: 0 }
+      }
+      updateProgress({ ...progress, stages })
+    }
+    setScreen({ name: 'review-result', correct })
   }
 
   function unlockAll() {
@@ -115,6 +166,45 @@ export default function App() {
         onToggleSound={toggleSound}
         onFinish={(correct) => finishStage(screen.stageId, correct)}
         onQuit={() => setScreen({ name: 'home' })}
+      />
+    )
+  }
+
+  if (screen.name === 'review') {
+    return (
+      <Game
+        key={`review-${playKey}`}
+        stage={REVIEW_STAGE}
+        level={1}
+        soundOn={soundOn}
+        customQuestions={screen.questions}
+        isReviewSession
+        onToggleSound={toggleSound}
+        onFinish={(correct) => finishReview(correct, screen.stageIds)}
+        onQuit={() => setScreen({ name: 'home' })}
+      />
+    )
+  }
+
+  if (screen.name === 'review-result') {
+    const stillHasMisses = STAGES.some((s) => (progress.stages[s.id]?.misses ?? 0) > 0)
+    return (
+      <Result
+        stage={REVIEW_STAGE}
+        correct={screen.correct}
+        total={5}
+        stars={0}
+        cleared={screen.correct >= 4}
+        leveledUp={false}
+        newLevel={1}
+        hasNext={false}
+        isReview
+        onNext={() => setScreen({ name: 'home' })}
+        onReplay={() => {
+          if (stillHasMisses) startReview()
+          else setScreen({ name: 'home' })
+        }}
+        onHome={() => setScreen({ name: 'home' })}
       />
     )
   }
@@ -153,6 +243,7 @@ export default function App() {
       onToggleSound={toggleSound}
       onToggleSpeech={toggleSpeech}
       onStart={startStage}
+      onStartReview={startReview}
       onUnlockAll={unlockAll}
       onReset={resetProgress}
     />
@@ -167,6 +258,7 @@ export default function App() {
         onToggleSound={toggleSound}
         onToggleSpeech={toggleSpeech}
         onStart={startStage}
+        onStartReview={startReview}
         onUnlockAll={unlockAll}
         onReset={resetProgress}
       />

@@ -5,6 +5,7 @@ import { playClear, playWrong, speakAuto } from '../utils/audio'
 // ==========================================================================
 // クリア（けっか）画面
 // せいかい数・スター・つぎへ・もういちど・ホーム
+// isReview のときは「ふくしゅう」用の 表示（スターなし・前向きな ことば）
 // ==========================================================================
 
 type Props = {
@@ -18,6 +19,8 @@ type Props = {
   /** いまの（つぎに つかう）難易度レベル */
   newLevel: number
   hasNext: boolean
+  /** ホームからの「ふくしゅう」セッションの けっかか */
+  isReview?: boolean
   onNext: () => void
   onReplay: () => void
   onHome: () => void
@@ -32,13 +35,18 @@ export function Result({
   leveledUp,
   newLevel,
   hasNext,
+  isReview = false,
   onNext,
   onReplay,
   onHome,
 }: Props) {
   // けっか画面が でたら 音で しらせる（クリアは ファンファーレ）
   useEffect(() => {
-    if (cleared) {
+    if (isReview) {
+      // ふくしゅうは いつでも 前向きに
+      playClear()
+      window.setTimeout(() => speakAuto(cleared ? 'ふくしゅう ばっちり！' : 'よく がんばったね！'), 700)
+    } else if (cleared) {
       playClear()
       window.setTimeout(() => speakAuto(leveledUp ? 'クリア！ レベルアップ！' : 'クリア！ おめでとう！'), 700)
     } else {
@@ -48,6 +56,14 @@ export function Result({
     // マウント時に 1かいだけ
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const title = isReview
+    ? cleared
+      ? 'ふくしゅう ばっちり！'
+      : 'よく がんばったね！'
+    : cleared
+      ? 'クリア！ おめでとう！'
+      : 'おしい！ もうすこし！'
 
   return (
     <div className="result" style={{ ['--accent' as string]: stage.color }}>
@@ -62,20 +78,22 @@ export function Result({
       )}
 
       <div className="card result-card">
-        <div className="result-face">{cleared ? '🏆' : '💪'}</div>
-        <h2 className="result-title">{cleared ? 'クリア！ おめでとう！' : 'おしい！ もうすこし！'}</h2>
+        <div className="result-face">{isReview ? (cleared ? '🌟' : '💪') : cleared ? '🏆' : '💪'}</div>
+        <h2 className="result-title">{title}</h2>
 
         <p className="result-score">
           {total}もん ちゅう <b>{correct}</b>もん せいかい
         </p>
 
-        <div className="result-stars">
-          {[1, 2, 3].map((n) => (
-            <span key={n} className={n <= stars ? 'big-star on pop' : 'big-star'} style={{ animationDelay: `${n * 150}ms` }}>
-              ★
-            </span>
-          ))}
-        </div>
+        {!isReview && (
+          <div className="result-stars">
+            {[1, 2, 3].map((n) => (
+              <span key={n} className={n <= stars ? 'big-star on pop' : 'big-star'} style={{ animationDelay: `${n * 150}ms` }}>
+                ★
+              </span>
+            ))}
+          </div>
+        )}
 
         {leveledUp && (
           <div className="levelup pop">
@@ -83,7 +101,13 @@ export function Result({
           </div>
         )}
 
-        {!cleared && <p className="result-msg">4もん せいかいで クリアだよ。もういちど チャレンジ！</p>}
+        {isReview ? (
+          <p className="result-msg">
+            {cleared ? 'にがてが へったよ！ このちょうし！' : 'まちがえても だいじょうぶ。すこしずつ おぼえよう！'}
+          </p>
+        ) : (
+          !cleared && <p className="result-msg">4もん せいかいで クリアだよ。もういちど チャレンジ！</p>
+        )}
 
         <div className="result-btns">
           {cleared && hasNext && (
@@ -92,7 +116,7 @@ export function Result({
             </button>
           )}
           <button className="btn btn-big" onClick={onReplay}>
-            🔁 もういちど
+            {isReview ? '💪 もういちど ふくしゅう' : '🔁 もういちど'}
           </button>
           <button className="btn btn-ghost" onClick={onHome}>
             🏠 ホームへ

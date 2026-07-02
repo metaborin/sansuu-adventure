@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { StageMeta } from '../types'
+import type { Question, StageMeta } from '../types'
 import { generateQuestions } from '../questions'
 import { VisualView } from './Visual'
 import { playCorrect, playTap, playWrong, speak, speakAuto, stopSpeak } from '../utils/audio'
@@ -8,27 +8,47 @@ import { playCorrect, playTap, playWrong, speak, speakAuto, stopSpeak } from '..
 // 問題画面（1ステージ ＝ 5問）
 // ・えらぶ → せいかい なら「つぎへ」/ まちがい なら やさしく ヒント（何回でも やりなおせる）
 // ・スコアは「1回めで せいかい できた 数」で つける（成功体験を おおく）
+// ・5問のあと、1回めで まちがえた 問題が あれば「ふくしゅうタイム」で
+//   もういちど チャレンジしてから けっかへ（まちがいっぱなしで 終わらせない）
 // ==========================================================================
 
 const QUESTIONS_PER_STAGE = 5
+
+type Phase = 'main' | 'retry'
 
 type Props = {
   stage: StageMeta
   /** 難易度レベル（1〜3）。出題の むずかしさが 変わる */
   level: number
   soundOn: boolean
+  /** ホームの「ふくしゅう」用に、問題を 外から わたす（わたすと 自動生成しない） */
+  customQuestions?: Question[]
+  /** ホームからの ふくしゅうセッションか（このときは ふくしゅうタイムを 重ねない） */
+  isReviewSession?: boolean
   onToggleSound: () => void
   onFinish: (correct: number) => void
   onQuit: () => void
 }
 
-export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }: Props) {
+export function Game({
+  stage,
+  level,
+  soundOn,
+  customQuestions,
+  isReviewSession = false,
+  onToggleSound,
+  onFinish,
+  onQuit,
+}: Props) {
   // 5問を さいしょに 作って おく（このコンポーネントが 生きている あいだは 変わらない）
-  const questions = useMemo(
-    () => generateQuestions(stage.id, QUESTIONS_PER_STAGE, level),
-    [stage.id, level]
+  const mainQuestions = useMemo(
+    () => customQuestions ?? generateQuestions(stage.id, QUESTIONS_PER_STAGE, level),
+    [stage.id, level, customQuestions]
   )
 
+  // フェーズ： main = ほんばん ／ retry = ふくしゅうタイム（まちがえた 問題に もういちど）
+  const [phase, setPhase] = useState<Phase>('main')
+  const [retryQueue, setRetryQueue] = useState<Question[]>([])
   const [index, setIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [attempts, setAttempts] = useState(0)
@@ -36,8 +56,10 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
   const [solved, setSolved] = useState(false)
   const [finished, setFinished] = useState(false) // 連打ぼうし
 
+  const questions = phase === 'main' ? mainQuestions : retryQueue
   const q = questions[index]
   const isLast = index === questions.length - 1
+  const hasRetry = retryQueue.length > 0 && !isReviewSession
 
   // あたらしい 問題に なったら、じどう 読み上げ（せっていが オンのときだけ・ベストエフォート）
   useEffect(() => {
@@ -50,28 +72,44 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
     if (wrong.includes(value)) return // すでに ちがった ボタンは 無視
 
     if (value === q.answer) {
-      if (attempts === 0) setCorrectCount((c) => c + 1) // 1回めの せいかいだけ 数える
+      // スコアは「ほんばんで 1回めに せいかい」だけ 数える（ふくしゅうタイムは 数えない）
+      if (phase === 'main' && attempts === 0) setCorrectCount((c) => c + 1)
       setSolved(true)
       playCorrect()
     } else {
+      // ほんばんで 1回めに まちがえた 問題は、ふくしゅうタイム用に とっておく
+      if (phase === 'main' && attempts === 0 && !isReviewSession) {
+        setRetryQueue((rq) => [...rq, q])
+      }
       setWrong((w) => [...w, value])
       setAttempts((a) => a + 1)
       playWrong()
     }
   }
 
-  function next() {
-    playTap()
-    if (isLast) {
-      if (finished) return
-      setFinished(true)
-      onFinish(correctCount)
-      return
-    }
-    setIndex((i) => i + 1)
+  function resetPerQuestion() {
     setAttempts(0)
     setWrong([])
     setSolved(false)
+  }
+
+  function next() {
+    playTap()
+    if (!isLast) {
+      setIndex((i) => i + 1)
+      resetPerQuestion()
+      return
+    }
+    // さいごの 問題の あと：ふくしゅうタイムが あれば そちらへ
+    if (phase === 'main' && hasRetry) {
+      setPhase('retry')
+      setIndex(0)
+      resetPerQuestion()
+      return
+    }
+    if (finished) return
+    setFinished(true)
+    onFinish(correctCount)
   }
 
   // 段階ヒント：まちがえた かいすうに あわせて だんだん くわしく
@@ -79,6 +117,13 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
   const currentHint = showHint ? q.hints[Math.min(attempts - 1, q.hints.length - 1)] : ''
   // 2かい まちがえたら、せいかいの ボタンを やさしく ひからせて つまり防止
   const reveal = !solved && attempts >= 2
+
+  // 「つぎへ」ボタンの ことば
+  const nextLabel = !isLast
+    ? 'つぎへ ▶'
+    : phase === 'main' && hasRetry
+      ? 'ふくしゅうタイムへ 💪'
+      : 'けっかを みる 🏁'
 
   return (
     <div className="game" style={{ ['--accent' as string]: stage.color }}>
@@ -98,15 +143,25 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
           {soundOn ? '🔊' : '🔇'}
         </button>
         <div className="game-count">
+          {phase === 'retry' ? 'ふくしゅう ' : ''}
           {index + 1}/{questions.length}
         </div>
       </div>
 
-      {level > 1 && <div className="level-chip">レベル {level}</div>}
+      {phase === 'retry' && (
+        <div className="review-banner" role="status">
+          💪 ふくしゅうタイム！ まちがえた もんだいに もういちど チャレンジ！
+        </div>
+      )}
+
+      {level > 1 && !isReviewSession && phase === 'main' && <div className="level-chip">レベル {level}</div>}
 
       <div className="dots">
         {questions.map((_, i) => (
-          <span key={i} className={`dot ${i < index ? 'done' : ''} ${i === index ? 'now' : ''}`} />
+          <span
+            key={i}
+            className={`dot ${phase === 'retry' ? 'review' : ''} ${i < index ? 'done' : ''} ${i === index ? 'now' : ''}`}
+          />
         ))}
       </div>
 
@@ -126,12 +181,12 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
 
         <div className="visual-area">
           {/* 問題ごとに key を かえて、とうじょうアニメを まいかい さいせい */}
-          <VisualView key={q.id} visual={q.visual} revealed={solved} />
+          <VisualView key={`${phase}-${q.id}`} visual={q.visual} revealed={solved} />
         </div>
 
         {solved && (
           <div className="feedback ok" role="status">
-            🎉 よくできたね！
+            {phase === 'retry' ? '🎉 できたね！ すごい！' : '🎉 よくできたね！'}
           </div>
         )}
         {showHint && (
@@ -164,7 +219,7 @@ export function Game({ stage, level, soundOn, onToggleSound, onFinish, onQuit }:
 
         {solved && (
           <button className="btn btn-big btn-next" onClick={next}>
-            {isLast ? 'けっかを みる 🏁' : 'つぎへ ▶'}
+            {nextLabel}
           </button>
         )}
       </div>

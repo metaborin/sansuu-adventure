@@ -14,7 +14,7 @@ export const MAX_LEVEL = 3
 
 /** ステージ進捗の初期値 */
 function emptyStage(): StageProgress {
-  return { cleared: false, bestCorrect: 0, stars: 0, level: 1 }
+  return { cleared: false, bestCorrect: 0, stars: 0, level: 1, misses: 0 }
 }
 
 /** よみこんだ古いデータに足りない項目をうめる（グレースフル移行） */

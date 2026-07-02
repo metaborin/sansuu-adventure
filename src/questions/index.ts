@@ -46,6 +46,55 @@ export function generateOne(stageId: number, level = 1): Question {
   return gen(level)
 }
 
+/** ふくしゅうの 出題もと（どのステージを どのくらい 出すか） */
+export interface ReviewEntry {
+  stageId: number
+  /** そのステージの いまの 難易度レベル */
+  level: number
+  /** 重み（まちがえた数）。おおきいほど 出やすい */
+  weight: number
+}
+
+/**
+ * ふくしゅう用に、にがてな ステージから n 問（デフォルト5問）ミックスして作る。
+ * まちがいが 多い ステージほど 出やすい（重みつき）。
+ * もどり値には「どの ステージから 出題したか」も ふくむ（ふくしゅう後の 消し込み用）。
+ */
+export function generateReviewQuestions(
+  entries: ReviewEntry[],
+  n = 5
+): { questions: Question[]; stageIds: number[] } {
+  // 重みの ぶんだけ プールに 入れて、ランダムに 引く
+  const pool: { stageId: number; level: number }[] = []
+  for (const e of entries) {
+    for (let i = 0; i < Math.max(1, e.weight); i++) pool.push({ stageId: e.stageId, level: e.level })
+  }
+
+  const questions: Question[] = []
+  const seen = new Set<string>()
+  const stageIds = new Set<number>()
+  let guard = 0
+
+  while (questions.length < n && pool.length > 0 && guard < n * 30) {
+    guard += 1
+    const pick = pool[Math.floor(Math.random() * pool.length)]
+    const q = generateOne(pick.stageId, pick.level)
+    const key = `${q.prompt}|${q.answer}|${JSON.stringify(q.visual)}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    questions.push(q)
+    stageIds.add(pick.stageId)
+  }
+  // 重複チェックで 足りなければ、そのまま うめる
+  while (questions.length < n && pool.length > 0) {
+    const pick = pool[Math.floor(Math.random() * pool.length)]
+    questions.push(generateOne(pick.stageId, pick.level))
+    stageIds.add(pick.stageId)
+  }
+
+  return { questions, stageIds: [...stageIds] }
+}
+
 /**
  * ステージ用に n 問（デフォルト5問）作る。
  * level（1〜3）で 出題の むずかしさを 変えます。

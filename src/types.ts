@@ -91,6 +91,11 @@ export interface StageProgress {
    * 全問正解でレベルアップ、2問以下でレベルダウン。
    */
   level: number
+  /**
+   * 直近のプレイで「1回めに まちがえた」問題の数（0〜5）。
+   * ホームの「ふくしゅう」の出題もとになる。ふくしゅうで 4問以上できたら 0 に戻る。
+   */
+  misses: number
 }
 
 /** localStorage に保存する進捗データ全体 */
