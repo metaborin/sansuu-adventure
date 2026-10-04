@@ -11,6 +11,9 @@
    ========================================================================== */
 
 const CACHE = 'sansuu-adventure-v1'
+// Git history: ad403ca introduced this cache. Keep exact names here; caches share an origin.
+// When changing CACHE, retain its previous name in this set for owned-cache cleanup.
+const OWNED_CACHE_NAMES = new Set(['sansuu-adventure-v1'])
 
 // さいしょに かならず キャッシュして おく ファイル（相対パス = このSWの場所基準）
 const PRECACHE = [
@@ -35,7 +38,11 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(
+          keys.filter((k) => k !== CACHE && OWNED_CACHE_NAMES.has(k)).map((k) => caches.delete(k))
+        )
+      )
       .then(() => self.clients.claim())
   )
 })
